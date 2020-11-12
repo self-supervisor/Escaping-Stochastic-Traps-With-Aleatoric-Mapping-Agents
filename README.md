@@ -18,6 +18,7 @@ For the minigrid experiments, navigate to the rl-starter directory. Then:
 ```bash uncertainty_experiment.sh```
 
 For the noisy MNIST results go to the MNIST directory and run the Noisy_MNIST.ipynb
+(make sure to download the mnist data)
 
 # Code Acknowledgements 
 
