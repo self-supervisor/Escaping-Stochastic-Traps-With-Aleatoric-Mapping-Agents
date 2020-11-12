@@ -103,7 +103,6 @@ class A2CAlgo(BaseAlgo):
         self.agents_to_save = []
         self.counts_for_each_thread = [0] * 16
         self.action_stats_logger = ActionStatsLogger(self.env.envs[0].action_space.n)
-        self.reset_frame_buffer()
 
     def update_visitation_counts(self, envs):
         """
