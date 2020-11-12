@@ -6,6 +6,7 @@ This repo presents the code used for the **NeurIPS 2020 Biological and Artificia
 
 **Abstract**: Exploration in environments with sparse rewards is difficult for artificial agents. Curiosity driven learning --- using feed-forward prediction errors as intrinsic rewards --- has achieved some success in these scenarios, but fails when faced with action dependent noise sources. We present aleatoric mapping agents (AMAs), a neuroscience inspired solution modeled on the cholinergic system of the mammalian brain. AMAs aim to explicitly ascertain which dynamics of the environment are unpredictable, regardless of whether those dynamics are induced by the actions of the agent. This is achieved by generating separate forward predictions for the mean and variance of future states and reducing intrinsic rewards for those transitions with high aleatoric variance. We show AMAs are able to effectively circumvent action dependent stochastic traps that plague conventional curiosity driven agents.
 
+![Minigrid Figure](https://raw.githubusercontent.com/self-supervisor/Escaping-Stochastic-Traps-With-Aleatoric-Mapping-Agents/main/assets/AMA.png)
 
 # Installing Dependencies
 
