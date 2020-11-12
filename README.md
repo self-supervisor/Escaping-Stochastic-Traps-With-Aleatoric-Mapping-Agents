@@ -37,6 +37,10 @@ https://github.com/facebookresearch/impact-driven-exploration
 
 https://github.com/L1aoXingyu/295pytorch-beginner/
 
+Misc:
+
+https://stackoverflow.com/questions/5543651/computing-standard-deviation-in-a-stream
+
 # If you find that this code/paper is useful enough for a citation use the following bibtex:
 
 ```
