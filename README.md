@@ -41,9 +41,11 @@ https://github.com/L1aoXingyu/295pytorch-beginner/
 
 # If you find that this code/paper is useful enough for a citation use the following bibtex:
 
-```@misc{pathak2017curiosity,
+```
+@misc{pathak2017curiosity,
   title={Escaping Stochastic Traps with Aleatoric Mapping Agents},
   author={Mavor-Parker, Augustine N. and Young, Kimberly A. and Barry, Caswell and Griffin, Lewis D.},
   booktitle={NeurIPS Biological and Artificial Reinforcement Learning Workshop},
   year={2020}
-}```
+}
+```
