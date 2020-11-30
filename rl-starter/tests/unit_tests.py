@@ -20,12 +20,12 @@ def a2c_algo():
     uncertainty = True
     noisy_tv = True
     curiosity = True
-    randomise_env = False
+    randomise_env = "False"
     uncertainty_budget = 0.0005
     environment_seed = 1
     reward_weighting = 0.1
     normalise_rewards = True
-    frames_before_reset = 2000
+    frames_before_reset = 8
     frames_per_proc = None
     discount = 0.99
     lr = 0.001
@@ -99,9 +99,18 @@ def test_add_noisy_tv(a2c_algo):
     
 
 # @pytest.mark.parametrize()
-def test_reset_environments_if_ness():
-    pass
+def test_reset_environments_if_ness(a2c_algo):
+    _, _ = a2c_algo.collect_experiences()
 
+    a2c_algo.reset_environments_if_ness(0)
+    grids = []
+    positions = []
+    for an_env in a2c_algo.env.envs:
+        positions.append(an_env.agent_pos)
+        grids.append(str(an_env))
+
+    assert all_same(grids)
+    assert all_same(positions)
 
 # @pytest.mark.parametrize()
 def test_compute_intrinsic_rewards():
@@ -119,6 +128,14 @@ def test_get_label_from_path():
 def test_plot():
     pass
 
+
+def all_same(items):
+    """
+    https://stackoverflow.com/questions/3787908/
+    python-determine-if-all-items-of-a-list-
+    are-the-same-item
+    """
+    return all(np.array_equal(x, items[0]) for x in items)
 
 def get_obss_preprocessor(obs_space):
     """
