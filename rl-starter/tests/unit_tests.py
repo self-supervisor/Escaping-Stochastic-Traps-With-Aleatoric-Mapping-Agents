@@ -1,11 +1,13 @@
 import sys
-
+import re
 sys.path.append("..")  # quick and dirty works for now
+import numpy as np
 import pytest
+import torch
+from src.model import ACModel
 from src.scripts.a2c import A2CAlgo
 from src.scripts.models import AutoencoderWithUncertainty
-from src.model import ACModel
-
+import torch_ac
 
 @pytest.fixture
 def a2c_algo():
@@ -24,7 +26,7 @@ def a2c_algo():
     reward_weighting = 0.1
     normalise_rewards = True
     frames_before_reset = 2000
-    frames_per_proc = 16
+    frames_per_proc = None
     discount = 0.99
     lr = 0.001
     gae_lambda = 0.95
@@ -34,7 +36,17 @@ def a2c_algo():
     recurrence = 1
     optim_alpha = 0.99
     optim_eps = 1e-8
-    preprocess_obss = utils.get_obs_preprocessor(envs[0].observation_space)
+    envs = []
+    procs = 16
+    seed = 2
+    env = "MiniGrid-KeyCorridorS6R3-v0"
+    for i in range(procs):
+        envs.append(make_env(env, seed + 10000 * i))
+
+    obs_space, preprocess_obss = get_obss_preprocessor(envs[0].observation_space)
+
+    acmodel = ACModel(obs_space, envs[0].action_space)
+
     algo = A2CAlgo(
         envs,
         acmodel,
@@ -66,9 +78,14 @@ def a2c_algo():
 
 
 # @pytest.mark.parametrize()
-def test_update_visitation_counts():
-    pass
-
+def test_update_visitation_counts(a2c_algo):
+    for i in range(a2c_algo.visitation_counts.shape[0]):
+        for j in range(a2c_algo.visitation_counts.shape[1]):
+            assert np.count_nonzero(a2c_algo.visitation_counts[i][j]) == 0
+    exps, logs1 = a2c_algo.collect_experiences()
+    assert np.sum(a2c_algo.visitation_counts) == a2c_algo.num_frames_per_proc * a2c_algo.num_procs 
+    exps, logs1 = a2c_algo.collect_experiences()
+    assert np.sum(a2c_algo.visitation_counts) == a2c_algo.num_frames_per_proc * a2c_algo.num_procs * 2
 
 # @pytest.mark.parametrize()
 def test_add_noisy_tv():
@@ -134,3 +151,57 @@ def get_obss_preprocessor(obs_space):
         raise ValueError("Unknown observation space: " + str(obs_space))
 
     return obs_space, preprocess_obss
+
+
+import gym
+import gym_minigrid
+
+
+def make_env(env_key, seed=None):
+    env = gym.make(env_key)
+    env.seed(seed)
+    return env
+
+
+import gym
+import gym_minigrid
+
+def preprocess_images(images, device=None):                                                                                                       
+    # Bug of Pytorch: very slow if not first converted to numpy array                                                                             
+    images = np.array(images)                                                                                                                  
+    return torch.tensor(images, device=device, dtype=torch.float)
+
+def preprocess_texts(texts, vocab, device=None):
+    var_indexed_texts = []
+    max_text_len = 0
+
+    for text in texts:
+        tokens = re.findall("([a-z]+)", text.lower())
+        var_indexed_text = np.array([vocab[token] for token in tokens])
+        var_indexed_texts.append(var_indexed_text)
+        max_text_len = max(len(var_indexed_text), max_text_len)
+
+    indexed_texts = np.zeros((len(texts), max_text_len))
+
+    for i, indexed_text in enumerate(var_indexed_texts):
+        indexed_texts[i, :len(indexed_text)] = indexed_text
+
+    return torch.tensor(indexed_texts, device=device, dtype=torch.long)
+
+class Vocabulary:
+    """A mapping from tokens to ids with a capacity of `max_size` words.
+    It can be saved in a `vocab.json` file."""
+
+    def __init__(self, max_size):
+        self.max_size = max_size
+        self.vocab = {}
+
+    def load_vocab(self, vocab):
+        self.vocab = vocab
+
+    def __getitem__(self, token):
+        if not token in self.vocab.keys():
+            if len(self.vocab) >= self.max_size:
+                raise ValueError("Maximum vocabulary capacity reached")
+            self.vocab[token] = len(self.vocab) + 1
+        return self.vocab[token]

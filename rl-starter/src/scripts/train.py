@@ -100,7 +100,6 @@ def tuner(icm_lr, reward_weighting, normalise_rewards, args):
     autoencoder_opt = torch.optim.Adam(
         autoencoder.parameters(), lr=icm_lr, weight_decay=0
     )
-
     if args.algo == "a2c":
         algo = A2CAlgo(
             envs,
