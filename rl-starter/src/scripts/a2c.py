@@ -116,12 +116,12 @@ class A2CAlgo(BaseAlgo):
     def add_noisy_tv(self, obs_tp1, action, envs):
         """
         Noisy TV dependent on the done (6) action.
-        
-        The range of the noisy TV random ints comes 
+
+        The range of the noisy TV random ints comes
         from the number of valid values each channel
-        can theoretically have in the gym minigrid 
+        can theoretically have in the gym minigrid
         environment.
-        
+
         Returns
         -------
         obs_tp1 : numpy array
@@ -144,8 +144,8 @@ class A2CAlgo(BaseAlgo):
 
     def reset_environments_if_ness(self, frame):
         """
-        reset all parallel minigrid environment every 
-        self.frames_before_reset frames. 
+        reset all parallel minigrid environment every
+        self.frames_before_reset frames.
         """
         if self.algo_count % self.frames_before_reset == 0:
             if self.randomise_env == "False":
