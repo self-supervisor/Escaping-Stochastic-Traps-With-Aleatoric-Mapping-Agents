@@ -88,9 +88,15 @@ def test_update_visitation_counts(a2c_algo):
     assert np.sum(a2c_algo.visitation_counts) == a2c_algo.num_frames_per_proc * a2c_algo.num_procs * 2
 
 # @pytest.mark.parametrize()
-def test_add_noisy_tv():
-    pass
-
+def test_add_noisy_tv(a2c_algo):
+    action = [1] * 15 + [6]
+    obs, _, _, _ = a2c_algo.env.step(action)
+    copy_changed = obs[15]["image"].copy()
+    copy_same = obs[0]["image"].copy()
+    obs_with_tv = a2c_algo.add_noisy_tv(obs, action, a2c_algo.env.envs)
+    assert np.array_equal(copy_same, obs_with_tv[0]["image"])
+    assert np.array_equal(copy_changed, obs_with_tv[-1]["image"]) == False
+    
 
 # @pytest.mark.parametrize()
 def test_reset_environments_if_ness():
