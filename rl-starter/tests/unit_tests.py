@@ -1,6 +1,7 @@
 import sys
-import re
+
 sys.path.append("..")  # quick and dirty works for now
+import re
 import numpy as np
 import pytest
 import torch
@@ -77,7 +78,6 @@ def a2c_algo():
     return algo
 
 
-# @pytest.mark.parametrize()
 def test_update_visitation_counts(a2c_algo):
     for i in range(a2c_algo.visitation_counts.shape[0]):
         for j in range(a2c_algo.visitation_counts.shape[1]):
@@ -87,7 +87,7 @@ def test_update_visitation_counts(a2c_algo):
     exps, logs1 = a2c_algo.collect_experiences()
     assert np.sum(a2c_algo.visitation_counts) == a2c_algo.num_frames_per_proc * a2c_algo.num_procs * 2
 
-# @pytest.mark.parametrize()
+
 def test_add_noisy_tv(a2c_algo):
     action = [1] * 15 + [6]
     obs, _, _, _ = a2c_algo.env.step(action)
@@ -98,36 +98,92 @@ def test_add_noisy_tv(a2c_algo):
     assert np.array_equal(copy_changed, obs_with_tv[-1]["image"]) == False
     
 
-# @pytest.mark.parametrize()
 def test_reset_environments_if_ness(a2c_algo):
-    _, _ = a2c_algo.collect_experiences()
+    for _ in range(10):
+        a2c_algo.frames_before_reset = 8 
+        _, _ = a2c_algo.collect_experiences()
 
-    a2c_algo.reset_environments_if_ness(0)
-    grids = []
-    positions = []
-    for an_env in a2c_algo.env.envs:
-        positions.append(an_env.agent_pos)
-        grids.append(str(an_env))
+        a2c_algo.reset_environments_if_ness(0)
+        grids = []
+        positions = []
+        for an_env in a2c_algo.env.envs:
+            positions.append(an_env.agent_pos)
+            grids.append(str(an_env))
 
-    assert all_same(grids)
-    assert all_same(positions)
+        assert all_same(grids)
+        assert all_same(positions)
 
-# @pytest.mark.parametrize()
-def test_compute_intrinsic_rewards():
-    pass
+        a2c_algo.frames_before_reset = 9 
+        _, _ = a2c_algo.collect_experiences()
+        a2c_algo.reset_environments_if_ness(0)
+        
+        grids = []
+        positions = []
+        for an_env in a2c_algo.env.envs:
+            positions.append(an_env.agent_pos)
+            grids.append(str(an_env))
+
+        assert all_same(grids) == False
+        assert all_same(positions) == False
 
 
 def test_get_mean_and_std_dev():
-    pass
+    from src.scripts.plot import get_mean_and_std_dev 
 
+    make_fake_csvs(zeros=True)
+    csv_paths = ["fake1.csv", "fake2.csv", "fake3.csv", "fake4.csv"]
+    mean, std_dev = get_mean_and_std_dev(csv_paths, "quantity_one") 
+    mean, std_dev = get_mean_and_std_dev(csv_paths, "quantity_two") 
+
+    for index, a_val in enumerate(mean):
+        assert a_val == 0
+        assert std_dev[index] == 0
+   
+    clean_csvs()
+
+    make_fake_csvs(zeros=False)
+    csv_paths = ["fake1.csv", "fake2.csv", "fake3.csv", "fake4.csv"]
+    mean, std_dev = get_mean_and_std_dev(csv_paths, "quantity_one") 
+    mean, std_dev = get_mean_and_std_dev(csv_paths, "quantity_two") 
+
+    for index, a_val in enumerate(mean):
+        assert std_dev[index] != 0
+
+    clean_csvs()
 
 def test_get_label_from_path():
-    pass
-
+    # generate fake paths in same way as scripts
+    # check the label extracted is what it should be 
+    pass 
 
 def test_plot():
+    # plot fake data 
+    # make sure is as expected 
     pass
 
+def make_fake_csvs(zeros):
+    import csv 
+    import random
+
+    for run in range(4):
+        run_number = run + 1
+        with open(f"fake{run_number}.csv", "w", newline="\n") as csvfile:
+            writer = csv.writer(csvfile, delimiter=",")
+            for row_index in range(1000):
+                writer.writerow(["update", "quantity_one", "quantity_two"])
+                if zeros:
+                    writer.writerow([0, 0, 0])
+                else:
+                    writer.writerow([random.uniform(0, 1), random.uniform(0, 1), random.uniform(0,1)])
+
+
+def clean_csvs():
+    import glob
+    import os 
+
+    files=glob.glob("fake*.csv")
+    for filename in files:
+        os.unlink(filename)
 
 def all_same(items):
     """

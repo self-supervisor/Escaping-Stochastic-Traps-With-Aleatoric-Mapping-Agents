@@ -1,6 +1,6 @@
-/home/amavorpa/Escaping-Stochastic-Traps-With-Aleatoric-Mapping-Agents/rl-starter/src/scripts/train.py --algo a2c --visualizing False --normalise_rewards False --env MiniGrid-KeyCorridorS6R3-v0 --model frames_8_noisy_tv_False_curiosity_False_uncertainty_False_random_seed_86_coefficient_0.0005 --icm_lr 0.0001 --reward_weighting 10 --save-interval 2000 --frames 50000 --seed 86 --uncertainty False --noisy_tv False --curiosity False --randomise_env False --environment_seed 89 --frames_before_reset 8
+/home/amavorpa/Escaping-Stochastic-Traps-With-Aleatoric-Mapping-Agents/rl-starter/src/scripts/train.py --algo a2c --visualizing False --normalise_rewards False --env MiniGrid-KeyCorridorS6R3-v0 --model frames_8_noisy_tv_False_curiosity_False_uncertainty_False_random_seed_86_coefficient_0.0005 --icm_lr 0.0001 --reward_weighting 10 --save-interval 2000 --frames 1000 --seed 86 --uncertainty False --noisy_tv False --curiosity False --randomise_env False --environment_seed 89 --frames_before_reset 8
 
-Namespace(algo='a2c', batch_size=256, clip_eps=0.2, curiosity='False', discount=0.99, entropy_coef=0.01, env='MiniGrid-KeyCorridorS6R3-v0', environment_seed='89', epochs=4, frames=50000, frames_before_reset='8', frames_per_proc=None, gae_lambda=0.95, icm_lr='0.0001', log_interval=1, lr=0.001, max_grad_norm=0.5, mem=False, model='frames_8_noisy_tv_False_curiosity_False_uncertainty_False_random_seed_86_coefficient_0.0005', noisy_tv='False', normalise_rewards='False', optim_alpha=0.99, optim_eps=1e-08, procs=16, randomise_env='False', recurrence=1, reward_weighting='10', save_interval=2000, seed=86, text=False, uncertainty='False', uncertainty_budget=1, value_loss_coef=0.5, visualizing='False')
+Namespace(algo='a2c', batch_size=256, clip_eps=0.2, curiosity='False', discount=0.99, entropy_coef=0.01, env='MiniGrid-KeyCorridorS6R3-v0', environment_seed='89', epochs=4, frames=1000, frames_before_reset='8', frames_per_proc=None, gae_lambda=0.95, icm_lr='0.0001', log_interval=1, lr=0.001, max_grad_norm=0.5, mem=False, model='frames_8_noisy_tv_False_curiosity_False_uncertainty_False_random_seed_86_coefficient_0.0005', noisy_tv='False', normalise_rewards='False', optim_alpha=0.99, optim_eps=1e-08, procs=16, randomise_env='False', recurrence=1, reward_weighting='10', save_interval=2000, seed=86, text=False, uncertainty='False', uncertainty_budget=1, value_loss_coef=0.5, visualizing='False')
 
 Device: cpu
 
@@ -33,3 +33,13 @@ ACModel(
   )
 )
 
+Optimizer loaded
+
+U 1 | F 000128 | FPS 0015 | D 8 | rR:μσmM 0.00 0.00 0.00 0.00 | F:μσmM 0.0 0.0 0 0 | H 0.000 | V 0.000 | pL 1.000
+U 2 | F 000256 | FPS 0333 | D 9 | rR:μσmM 0.00 0.00 0.00 0.00 | F:μσmM 0.0 0.0 0 0 | H 0.000 | V 0.000 | pL 2.000
+U 3 | F 000384 | FPS 0380 | D 9 | rR:μσmM 0.00 0.00 0.00 0.00 | F:μσmM 0.0 0.0 0 0 | H 0.000 | V 0.000 | pL 3.250
+U 4 | F 000512 | FPS 0303 | D 9 | rR:μσmM 0.00 0.00 0.00 0.00 | F:μσmM 0.0 0.0 0 0 | H 0.000 | V 0.000 | pL 5.125
+U 5 | F 000640 | FPS 0426 | D 10 | rR:μσmM 0.00 0.00 0.00 0.00 | F:μσmM 0.0 0.0 0 0 | H 0.000 | V 0.000 | pL 7.000
+U 6 | F 000768 | FPS 0310 | D 10 | rR:μσmM 0.00 0.00 0.00 0.00 | F:μσmM 0.0 0.0 0 0 | H 0.000 | V 0.000 | pL 7.000
+U 7 | F 000896 | FPS 0570 | D 10 | rR:μσmM 0.00 0.00 0.00 0.00 | F:μσmM 0.0 0.0 0 0 | H 0.000 | V 0.000 | pL 7.000
+U 8 | F 001024 | FPS 0468 | D 11 | rR:μσmM 0.00 0.00 0.00 0.00 | F:μσmM 0.0 0.0 0 0 | H 0.000 | V 0.000 | pL 7.625

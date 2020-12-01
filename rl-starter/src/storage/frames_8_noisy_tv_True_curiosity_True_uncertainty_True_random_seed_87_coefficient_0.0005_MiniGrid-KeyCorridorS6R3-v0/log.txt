@@ -1,6 +1,6 @@
-/home/amavorpa/Escaping-Stochastic-Traps-With-Aleatoric-Mapping-Agents/rl-starter/src/scripts/train.py --algo a2c --visualizing False --normalise_rewards True --env MiniGrid-KeyCorridorS6R3-v0 --model frames_8_noisy_tv_True_curiosity_True_uncertainty_True_random_seed_87_coefficient_0.0005_MiniGrid-KeyCorridorS6R3-v0 --save-interval 2000 --frames 50000 --seed 87 --uncertainty True --noisy_tv True --curiosity True --randomise_env False --environment_seed 87 --icm_lr 0.001 --reward_weighting 0.1 --frames_before_reset 8
+/home/amavorpa/Escaping-Stochastic-Traps-With-Aleatoric-Mapping-Agents/rl-starter/src/scripts/train.py --algo a2c --visualizing False --normalise_rewards True --env MiniGrid-KeyCorridorS6R3-v0 --model frames_8_noisy_tv_True_curiosity_True_uncertainty_True_random_seed_87_coefficient_0.0005_MiniGrid-KeyCorridorS6R3-v0 --save-interval 2000 --frames 1000 --seed 87 --uncertainty True --noisy_tv True --curiosity True --randomise_env False --environment_seed 87 --icm_lr 0.001 --reward_weighting 0.1 --frames_before_reset 8
 
-Namespace(algo='a2c', batch_size=256, clip_eps=0.2, curiosity='True', discount=0.99, entropy_coef=0.01, env='MiniGrid-KeyCorridorS6R3-v0', environment_seed='87', epochs=4, frames=50000, frames_before_reset='8', frames_per_proc=None, gae_lambda=0.95, icm_lr='0.001', log_interval=1, lr=0.001, max_grad_norm=0.5, mem=False, model='frames_8_noisy_tv_True_curiosity_True_uncertainty_True_random_seed_87_coefficient_0.0005_MiniGrid-KeyCorridorS6R3-v0', noisy_tv='True', normalise_rewards='True', optim_alpha=0.99, optim_eps=1e-08, procs=16, randomise_env='False', recurrence=1, reward_weighting='0.1', save_interval=2000, seed=87, text=False, uncertainty='True', uncertainty_budget=1, value_loss_coef=0.5, visualizing='False')
+Namespace(algo='a2c', batch_size=256, clip_eps=0.2, curiosity='True', discount=0.99, entropy_coef=0.01, env='MiniGrid-KeyCorridorS6R3-v0', environment_seed='87', epochs=4, frames=1000, frames_before_reset='8', frames_per_proc=None, gae_lambda=0.95, icm_lr='0.001', log_interval=1, lr=0.001, max_grad_norm=0.5, mem=False, model='frames_8_noisy_tv_True_curiosity_True_uncertainty_True_random_seed_87_coefficient_0.0005_MiniGrid-KeyCorridorS6R3-v0', noisy_tv='True', normalise_rewards='True', optim_alpha=0.99, optim_eps=1e-08, procs=16, randomise_env='False', recurrence=1, reward_weighting='0.1', save_interval=2000, seed=87, text=False, uncertainty='True', uncertainty_budget=1, value_loss_coef=0.5, visualizing='False')
 
 Device: cpu
 
@@ -33,3 +33,13 @@ ACModel(
   )
 )
 
+Optimizer loaded
+
+U 1 | F 000128 | FPS 0060 | D 2 | rR:μσmM 0.00 0.00 0.00 0.00 | F:μσmM 0.0 0.0 0 0 | H -0.014 | V 0.045 | pL 1.625
+U 2 | F 000256 | FPS 0170 | D 2 | rR:μσmM 0.00 0.00 0.00 0.00 | F:μσmM 0.0 0.0 0 0 | H -0.014 | V 0.053 | pL 3.625
+U 3 | F 000384 | FPS 0194 | D 3 | rR:μσmM 0.00 0.00 0.00 0.00 | F:μσmM 0.0 0.0 0 0 | H -0.046 | V 0.064 | pL 4.375
+U 4 | F 000512 | FPS 0173 | D 4 | rR:μσmM 0.00 0.00 0.00 0.00 | F:μσmM 0.0 0.0 0 0 | H 0.018 | V 0.039 | pL 5.750
+U 5 | F 000640 | FPS 0173 | D 5 | rR:μσmM 0.00 0.00 0.00 0.00 | F:μσmM 0.0 0.0 0 0 | H 0.049 | V 0.023 | pL 6.000
+U 6 | F 000768 | FPS 0142 | D 5 | rR:μσmM 0.00 0.00 0.00 0.00 | F:μσmM 0.0 0.0 0 0 | H 0.067 | V 0.013 | pL 6.000
+U 7 | F 000896 | FPS 0222 | D 6 | rR:μσmM 0.00 0.00 0.00 0.00 | F:μσmM 0.0 0.0 0 0 | H 0.063 | V 0.010 | pL 6.875
+U 8 | F 001024 | FPS 0191 | D 7 | rR:μσmM 0.00 0.00 0.00 0.00 | F:μσmM 0.0 0.0 0 0 | H 0.068 | V 0.003 | pL 7.000
