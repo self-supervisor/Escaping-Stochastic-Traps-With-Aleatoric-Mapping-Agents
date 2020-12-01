@@ -169,24 +169,52 @@ def test_get_label_from_path():
     assert labels[2] == "frames 8 noisy tv True curiosity True uncertainty False"
 
 def test_plot():
-    # plot fake data 
-    # make sure is as expected 
-    pass
+    import glob
+    import os
+    import shutil
 
-def make_fake_csvs(zeros):
+    make_fake_csvs(zeros=True, for_plot=True)
+    from src.scripts.plot import plot
+    path_strings = glob.glob("storage/*/*csv")
+    path_strings = [a_string[:-8] for a_string in path_strings]
+    plot("software testing plot", [path_strings], "quantity_one") 
+    plot("software testing plot", [path_strings], "quantity_two") 
+    shutil.rmtree("storage")
+
+    make_fake_csvs(zeros=False, for_plot=True)
+    from src.scripts.plot import plot
+    path_strings = glob.glob("storage/*/*csv")
+    path_strings = [a_string[:-8] for a_string in path_strings]
+    plot("software testing plot no zeros", [path_strings], "quantity_one") 
+    plot("software testing plot no zeros", [path_strings], "quantity_two") 
+    shutil.rmtree("storage")
+
+def make_fake_csvs(zeros, for_plot=False):
     import csv 
     import random
+    import os
 
     for run in range(4):
         run_number = run + 1
-        with open(f"fake{run_number}.csv", "w", newline="\n") as csvfile:
-            writer = csv.writer(csvfile, delimiter=",")
-            for row_index in range(1000):
-                writer.writerow(["update", "quantity_one", "quantity_two"])
-                if zeros:
-                    writer.writerow([0, 0, 0])
-                else:
-                    writer.writerow([random.uniform(0, 1), random.uniform(0, 1), random.uniform(0,1)])
+        if for_plot:
+            os.makedirs(f"storage/frames_8_noisy_tv_True_curiosity_True_uncertainty_False_random_seed_89_coefficient_0.0005_fake{run_number}")
+            with open(f"storage/frames_8_noisy_tv_True_curiosity_True_uncertainty_False_random_seed_89_coefficient_0.0005_fake{run_number}/log.csv", "w", newline="\n") as csvfile:
+                writer = csv.writer(csvfile, delimiter=",")
+                for row_index in range(1000):
+                    writer.writerow(["update", "quantity_one", "quantity_two"])
+                    if zeros:
+                        writer.writerow([0, 0, 0])
+                    else:
+                        writer.writerow([random.uniform(0, 1), random.uniform(0, 1), random.uniform(0,1)])
+        else:
+            with open(f"fake{run_number}.csv", "w", newline="\n") as csvfile:
+                writer = csv.writer(csvfile, delimiter=",")
+                for row_index in range(1000):
+                    writer.writerow(["update", "quantity_one", "quantity_two"])
+                    if zeros:
+                        writer.writerow([0, 0, 0])
+                    else:
+                        writer.writerow([random.uniform(0, 1), random.uniform(0, 1), random.uniform(0,1)])
 
 
 def clean_csvs():
