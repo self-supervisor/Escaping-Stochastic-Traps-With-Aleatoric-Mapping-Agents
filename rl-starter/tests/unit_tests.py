@@ -10,17 +10,22 @@ from src.scripts.a2c import A2CAlgo
 from src.scripts.models import AutoencoderWithUncertainty
 import torch_ac
 
-@pytest.fixture
-def a2c_algo():
+@pytest.fixture(scope="module", params=[[True, True, True], 
+                                        [True, False, True],
+                                        [False, True, True],
+                                        [False, False, True],
+                                        [False, True, False],
+                                        [False, False, False]])
+def a2c_algo(request):
     device = "cpu"
     icm_lr = 0.001
     autoencoder = AutoencoderWithUncertainty(observation_shape=(7, 7, 3)).to(device)
     autoencoder_opt = torch.optim.Adam(
         autoencoder.parameters(), lr=icm_lr, weight_decay=0
     )
-    uncertainty = True
-    noisy_tv = True
-    curiosity = True
+    uncertainty = request.param[0]
+    noisy_tv = request.param[1]
+    curiosity = request.param[2]
     randomise_env = "False"
     uncertainty_budget = 0.0005
     environment_seed = 1
