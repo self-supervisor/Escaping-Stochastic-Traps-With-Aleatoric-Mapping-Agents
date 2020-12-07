@@ -4,7 +4,7 @@ rm -r storage/*
 rm *mp4
 frames_before_resets=(8)
 #environment=MiniGrid-KeyCorridorS6R3-v0
-environment=MiniGrid-SimpleCrossingS9N3-v0 #MiniGrid-MultiRoom-N4-S5-v0 MiniGrid-MultiRoom-N2-S4-v0)
+environment=MiniGrid-MultiRoom-N6-v0
 randomise_env=False
 frames=50000
 uncertainty_budget=0.0005
