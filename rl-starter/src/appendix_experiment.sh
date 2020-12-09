@@ -5,15 +5,19 @@ rm *mp4
 frames_before_resets=(8)
 #environments tried: MiniGrid-KeyCorridorS6R3-v0, MiniGrid-DoorKey-5x5-v0, MiniGrid-DoorKey-6x6-v0, MiniGrid-DoorKey-8x8-v0
 # MiniGrid-DoorKey-16x16-v0, MiniGrid-MultiRoom-N6-v0, MiniGrid-KeyCorridorS6R3-v0, MiniGrid-SimpleCrossingS11N5-v0
-environment=MiniGrid-FourRooms-v0
+environments=(MiniGrid-FourRooms-v0 MiniGrid-KeyCorridorS6R3-v0 MiniGrid-DoorKey-5x5-v0 MiniGrid-DoorKey-6x6-v0 MiniGrid-DoorKey-8x8-v0 MiniGrid-MultiRoom-N6-v0 MiniGrid-SimpleCrossingS11N5-v0)
 
-randomise_env=False
-frames=50000
-uncertainty_budget=0.0005
-#random_seeds=(85 86 87 88 89)
-random_seeds=(1 2 3)
+for environment in ${environments[@]}; do
+  rm *npy
+  rm -r storage/*
+  rm *mp4
+  randomise_env=False
+  frames=50000
+  uncertainty_budget=0.0005
+  #random_seeds=(85 86 87 88 89)
+  random_seeds=(1 2 3)
 
-for frames_before_reset in ${frames_before_resets[@]}; do
+  for frames_before_reset in ${frames_before_resets[@]}; do
 
     reward_weighting=0.1
     noisy_tv=(True False)
@@ -74,4 +78,5 @@ for frames_before_reset in ${frames_before_resets[@]}; do
     done
     wait
     python3 -m scripts.plot --environment $environment
+  done
 done
