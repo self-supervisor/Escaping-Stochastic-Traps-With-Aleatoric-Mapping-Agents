@@ -11,7 +11,7 @@ from .action_stats_logger import ActionStatsLogger
 from .icm import ICM
 import math
 from .conversion_utils import scale_for_autoencoder
-
+from utils.noisy_tv_wrapper import NoisyTVWrapper
 
 class A2CAlgo(BaseAlgo):
     """The Advantage Actor-Critic algorithm."""
@@ -103,6 +103,8 @@ class A2CAlgo(BaseAlgo):
         self.agents_to_save = []
         self.counts_for_each_thread = [0] * 16
         self.action_stats_logger = ActionStatsLogger(self.env.envs[0].action_space.n)
+        self.env = NoisyTVWrapper(self.env, self.frames_before_reset, self.environment_seed, noisy_tv)
+        
 
     def update_visitation_counts(self, envs):
         """
@@ -112,49 +114,6 @@ class A2CAlgo(BaseAlgo):
             if self.visitation_counts[env.agent_pos[0]][env.agent_pos[1]] == 0:
                 self.agents_to_save.append(i)
             self.visitation_counts[env.agent_pos[0]][env.agent_pos[1]] += 1
-
-    def add_noisy_tv(self, obs_tp1, action, envs):
-        """
-        Noisy TV dependent on the done (6) action.
-
-        The range of the noisy TV random ints comes
-        from the number of valid values each channel
-        can theoretically have in the gym minigrid
-        environment.
-
-        Returns
-        -------
-        obs_tp1 : numpy array
-            Returns frames one step into the future that
-            have the action dependent noisy TV injected.
-        """
-        import random
-
-        for i, a_action in enumerate(action):
-            if action[i] == 6:
-                # if np.array_equal(self.env.envs[i].agent_pos, (1, 2)):
-                a = np.random.randint(0, 6, (5, 5, 1))
-                b = np.random.randint(0, 11, (5, 5, 1))
-                c = np.random.randint(0, 3, (5, 5, 1))
-                obs_tp1[i]["image"][0:5, 0:5, :] = np.squeeze(
-                    np.stack([a, b, c], axis=3)
-                )
-                self.noisy_action_count += 1
-        return obs_tp1
-
-    def reset_environments_if_ness(self, frame):
-        """
-        reset all parallel minigrid environment every
-        self.frames_before_reset frames.
-        """
-        if self.algo_count % self.frames_before_reset == 0:
-            if self.randomise_env == "False":
-                for j, _ in enumerate(self.env.envs):
-                    self.env.envs[j].seed(seed=self.environment_seed)
-                    self.env.envs[j].reset()
-                # self.reset_frame_buffer()
-            self.algo_count = 0
-            self.counts_for_each_thread[frame] = 0
 
     def collect_experiences(self):
         """Collects rollouts and computes advantages.
@@ -182,7 +141,6 @@ class A2CAlgo(BaseAlgo):
         count = 0
 
         for i in range(self.num_frames_per_proc):
-            self.reset_environments_if_ness(frame=i)
             self.algo_count += 1
             self.counts_for_each_thread[i] += 1
             preprocessed_obs = self.preprocess_obss(self.obs, device=self.device)
@@ -195,12 +153,8 @@ class A2CAlgo(BaseAlgo):
                     dist, value = self.acmodel(preprocessed_obs)
             action = dist.sample()
             obs, extrinsic_reward, done, _ = self.env.step(action.cpu().numpy())
-            if done == True:
-                self.reset_environments_if_ness(frame=i)
             reward = extrinsic_reward
             self.update_visitation_counts(self.env.envs)
-            if self.noisy_tv == "True":
-                obs = self.add_noisy_tv(obs, action, self.env.envs)
             self.obss[i] = self.obs
             self.obs = obs
             self.current_frames.append(self.obs)

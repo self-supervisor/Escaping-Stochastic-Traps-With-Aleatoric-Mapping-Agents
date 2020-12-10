@@ -10,8 +10,8 @@ environment=MiniGrid-KeyCorridorS6R3-v0 #MiniGrid-FourRooms-v0
 randomise_env=False
 frames=50000
 uncertainty_budget=0.0005
-random_seeds=(85 86 87 88 89)
-#random_seeds=(1) # 2 3)
+#random_seeds=(85)
+random_seeds=(1 2 3)
 
 for frames_before_reset in ${frames_before_resets[@]}; do
 
