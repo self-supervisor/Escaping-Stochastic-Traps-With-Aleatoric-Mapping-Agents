@@ -1,7 +1,8 @@
 import glob
-import pandas as pd
+
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 
 
 def get_mean_and_std_dev(csv_paths, quantity):
@@ -17,12 +18,24 @@ def get_mean_and_std_dev(csv_paths, quantity):
 
 
 def plot_mean_and_uncertainty(mean, std, label, num_of_points, multiply_factor):
-    plt.plot(np.array(range(num_of_points)) * multiply_factor, mean, label=label)
+    if "curiosity True uncertainty True" in label:
+        color = "red"
+        label = "AMA Curiosity"
+    elif "curiosity False uncertainty False" in label:
+        color = "blue"
+        label = "No Reward A2C"
+    elif "curiosity True uncertainty False" in label:
+        color = "yellow"
+        label = "MSE Curiosity"
+    plt.plot(
+        np.array(range(num_of_points)) * multiply_factor, mean, label=label, color=color
+    )
     plt.fill_between(
         np.array(range(num_of_points)) * multiply_factor,
         mean - std,
         mean + std,
         alpha=0.2,
+        color=color,
     )
 
 
@@ -64,7 +77,7 @@ def plot(title, path_strings, quantity):
     plt.savefig(plot_title + "_" + frames + ".png")
 
 
-def main():
+def main(args):
     quantities_to_plot = ["intrinsic_rewards", "novel_states_visited", "uncertainties"]
     all_strings = glob.glob("storage/*")
     print(all_strings)
@@ -118,18 +131,16 @@ def main():
             Curious_True_Noisy_False_Uncertain_True,
             Curious_True_Noisy_False_Uncertain_False,
         ]
-        print(path_strings_noisy_tv)
-        plot(
-            "With Noisy TV, Minigrid 6x6 Averaged Over 10 Random Seeds",
-            path_strings_noisy_tv,
-            quantity,
-        )
-        plot(
-            "Without Noisy TV, Minigrid 6x6 Averaged Over 10 Random Seeds",
-            path_strings_no_noisy,
-            quantity,
-        )
+
+        plot("With Noisy TV " + args.environment, path_strings_noisy_tv, quantity)
+        plot("Without Noisy TV " + args.environment, path_strings_no_noisy, quantity)
 
 
 if __name__ == "__main__":
-    main()
+
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--environment", type=str)
+    args = parser.parse_args()
+    main(args)

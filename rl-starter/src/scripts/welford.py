@@ -13,7 +13,7 @@ class OnlineVariance(object):
         self.ddof, self.n, self.mean, self.M2 = (
             torch.tensor(ddof, device=self.device),
             torch.tensor(0, device=self.device),
-            torch.tensor(100.0, device=self.device),
+            torch.tensor(0.0, device=self.device),
             torch.tensor(1.0, device=self.device),
         )
         if iterable is not None:
@@ -33,7 +33,7 @@ class OnlineVariance(object):
         for _, val in enumerate(tensor):
             normalised_reward.append(self.include(val))
         normalised_reward = torch.stack(normalised_reward)
-        normalised_reward[normalised_reward != normalised_reward] = 0
+        # normalised_reward[normalised_reward != normalised_reward] = 0
         return normalised_reward
 
     @property

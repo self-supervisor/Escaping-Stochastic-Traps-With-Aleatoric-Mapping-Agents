@@ -195,6 +195,8 @@ class A2CAlgo(BaseAlgo):
                     dist, value = self.acmodel(preprocessed_obs)
             action = dist.sample()
             obs, extrinsic_reward, done, _ = self.env.step(action.cpu().numpy())
+            if done == True:
+                self.reset_environments_if_ness(frame=i)
             reward = extrinsic_reward
             self.update_visitation_counts(self.env.envs)
             if self.noisy_tv == "True":
