@@ -104,7 +104,7 @@ class A2CAlgo(BaseAlgo):
         self.counts_for_each_thread = [0] * 16
         self.action_stats_logger = ActionStatsLogger(self.env.envs[0].action_space.n)
         if self.noisy_tv == "True":
-            self.env = NoisyTVWrapper(self.env)
+            self.env = NoisyTVWrapper(self.env, self.noisy_tv)
 
     def update_visitation_counts(self, envs):
         """
