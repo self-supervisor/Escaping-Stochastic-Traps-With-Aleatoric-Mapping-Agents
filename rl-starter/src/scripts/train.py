@@ -63,7 +63,7 @@ def tuner(icm_lr, reward_weighting, normalise_rewards, args):
 
     envs = []
     for i in range(args.procs):
-        envs.append(utils.make_env(args.env, args.seed + 10000 * i))
+        envs.append(utils.make_env(args.env, int(args.frames_before_reset), int(args.environment_seed)))
     txt_logger.info("Environments loaded\n")
 
     # Load training status

@@ -132,8 +132,11 @@ def main(args):
             Curious_True_Noisy_False_Uncertain_False,
         ]
 
-        plot("With Noisy TV " + args.environment, path_strings_noisy_tv, quantity)
-        plot("Without Noisy TV " + args.environment, path_strings_no_noisy, quantity)
+
+        plot("With Noisy TV ", path_strings_noisy_tv, quantity)
+        plot("Without Noisy TV ", path_strings_no_noisy, quantity)
+        #plot("With Noisy TV " + args.environment + args.reward_weighting + args.normalise_rewards + args.icm_lr, path_strings_noisy_tv, quantity)
+        #plot("Without Noisy TV " + args.environment + args.reward_weighting + args.normalise_rewards + args.icm_lr, path_strings_no_noisy, quantity)
 
 
 if __name__ == "__main__":
@@ -142,5 +145,8 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--environment", type=str)
+    #parser.add_argument("--reward_weighting", type=str)
+    #parser.add_argument("--normalise_rewards", type=str)
+    #parser.add_argument("--icm_lr", type=str)
     args = parser.parse_args()
     main(args)

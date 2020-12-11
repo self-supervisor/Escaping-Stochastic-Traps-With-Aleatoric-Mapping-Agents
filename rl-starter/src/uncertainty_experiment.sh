@@ -11,7 +11,7 @@ randomise_env=False
 frames=50000
 uncertainty_budget=0.0005
 random_seeds=(85 86 87 88 89)
-#random_seeds=(1) # 2 3)
+#random_seeds=(1 2 3)
 
 for frames_before_reset in ${frames_before_resets[@]}; do
 
@@ -36,12 +36,12 @@ for frames_before_reset in ${frames_before_resets[@]}; do
     done
     wait
 
-    reward_weighting=0.1
+    reward_weighting=1
     icm_lr=0.001
     noisy_tv=(True False)
     curiosity=(True)
     uncertainty=(False)
-    normalise_reward=True
+    normalise_reward=False
 
     for random_seed in ${random_seeds[@]}; do
         for a_uncertainty in ${uncertainty[@]}; do
