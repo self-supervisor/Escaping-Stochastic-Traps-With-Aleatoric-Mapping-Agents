@@ -103,8 +103,8 @@ class A2CAlgo(BaseAlgo):
         self.agents_to_save = []
         self.counts_for_each_thread = [0] * 16
         self.action_stats_logger = ActionStatsLogger(self.env.envs[0].action_space.n)
-        if self.noisy_tv == "True":
-            self.env = NoisyTVWrapper(self.env, self.noisy_tv)
+        self.env = NoisyTVWrapper(self.env, self.noisy_tv)
+        self.counter = 0
 
     def update_visitation_counts(self, envs):
         """
@@ -140,11 +140,13 @@ class A2CAlgo(BaseAlgo):
         # are updated, so gathers a total 128 frames
         loss = 0
         count = 0
-
+        self.counter += 1
         for i in range(self.num_frames_per_proc):
             self.algo_count += 1
             self.counts_for_each_thread[i] += 1
             preprocessed_obs = self.preprocess_obss(self.obs, device=self.device)
+            for an_env in self.env.envs:
+                print(an_env.algo_count)
             with torch.no_grad():
                 if self.acmodel.recurrent:
                     dist, value, memory = self.acmodel(

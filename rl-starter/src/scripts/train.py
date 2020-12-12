@@ -11,7 +11,7 @@ def tuner(icm_lr, reward_weighting, normalise_rewards, args):
     from model import ACModel
     from .a2c import A2CAlgo
     from torch_ac import PPOAlgo
-
+    from utils.reset_wrapper import ResetWrapper
     # from .ppo import PPOAlgo
 
     frames_to_visualise = 200
@@ -62,8 +62,11 @@ def tuner(icm_lr, reward_weighting, normalise_rewards, args):
     # Load environments
 
     envs = []
-    for i in range(args.procs):
-        envs.append(utils.make_env(args.env, int(args.frames_before_reset), int(args.environment_seed)))
+    #import pdb; pdb.set_trace()
+    for i in range(16):
+        an_env = utils.make_env(args.env, int(args.frames_before_reset), int(args.environment_seed))
+        an_env = ResetWrapper(an_env, int(args.frames_before_reset), int(args.environment_seed))
+        envs.append(an_env)
     txt_logger.info("Environments loaded\n")
 
     # Load training status
