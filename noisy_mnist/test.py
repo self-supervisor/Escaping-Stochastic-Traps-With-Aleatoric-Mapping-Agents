@@ -1,10 +1,11 @@
 import numpy as np
 import pytest
-from noisy_mnist_aleatoric_uncertainty_for_poster import NoisyMnistEnv
 
 
 @pytest.fixture
 def noisy_mnist_env():
+    from noisy_mnist_aleatoric_uncertainty_for_poster import NoisyMnistEnv
+
     mnist_env = NoisyMnistEnv("train", 0, 2)
     return mnist_env
 
@@ -31,7 +32,9 @@ def test_mnist_env_step(noisy_mnist_env):
         assert np.array_equal(np.zeros((1, 28 * 28)), np.zeros((1, 28 * 28))) == True
     same = 0
     not_same = 0
-    for _ in range(1000):
+    for _ in range(
+        1000
+    ):  # check roughly half are deterministic transitions, half aren't
         x_arr, y_arr = noisy_mnist_env.step()
         same_sample, not_same_sample = check_count_of_classes(x_arr, y_arr)
         same += same_sample
@@ -42,4 +45,20 @@ def test_mnist_env_step(noisy_mnist_env):
 
 
 def test_mnist_env_random_sample_of_number(noisy_mnist_env):
-    pass
+    """
+    This test is a qualitative visual test, look in test images
+    and make sure the number title is the same as the number
+    """
+    import matplotlib.pyplot as plt
+    import os
+    import shutil
+
+    if os.path.isdir("test_images"):
+        shutil.rmtree("test_images")
+    os.mkdir("test_images")
+
+    for number in range(0, 10):
+        digit = noisy_mnist_env.get_random_sample_of_number(number)
+        plt.imshow(np.array(digit).reshape(28, 28))
+        plt.title(str(number))
+        plt.savefig("test_images/" + str(number) + ".png")
