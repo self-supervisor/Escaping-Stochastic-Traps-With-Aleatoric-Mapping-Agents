@@ -103,7 +103,7 @@ class A2CAlgo(BaseAlgo):
         self.agents_to_save = []
         self.counts_for_each_thread = [0] * 16
         self.action_stats_logger = ActionStatsLogger(self.env.envs[0].action_space.n)
-        self.env = NoisyTVWrapper(self.env, self.frames_before_reset, self.environment_seed, noisy_tv)
+        self.env = NoisyTVWrapper(self.env, noisy_tv)
         
 
     def update_visitation_counts(self, envs):
