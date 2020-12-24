@@ -89,16 +89,44 @@ def test_mnist_env_random_sample_of_number(noisy_mnist_env):
 
 
 def test_run_experiment(noisy_mnist_experiment):
-    noisy_mnist_experiment.run_experiment()
-
-
-def test_get_batch():
     pass
+    #noisy_mnist_experiment.run_experiment()
 
+
+def test_get_batch(noisy_mnist_experiment):
+    envs = [noisy_mnist_experiment.env_train, noisy_mnist_experiment.env_test_zeros, noisy_mnist_experiment.env_test_ones]
+    for an_env in envs:
+        data, target = noisy_mnist_experiment.get_batch(an_env)
+        assertions_for_generated_data(data)
+        assertions_for_generated_data(target)
+
+def assertions_for_generated_data(input_tensor):
+    assert input_tensor.type() == 'torch.cuda.FloatTensor'
+    assert input_tensor.max() <= 1.0
+    assert input_tensor.min() >= 0.0
+    assert torch.all(torch.eq(input_tensor, torch.zeros_like(input_tensor))) == False 
+    assert torch.all(torch.eq(torch.zeros_like(input_tensor), torch.zeros_like(input_tensor))) == True 
+    assert batch_is_different(input_tensor) == True
+    assert batch_is_different(torch.zeros_like(input_tensor)) == False
+
+def batch_is_different(input_tensor):
+    duplicate_tensors = 0
+    for i, data_point_i in enumerate(input_tensor):
+        for j, data_point_j in enumerate(input_tensor):
+            if i != j:
+                if torch.all(torch.eq(data_point_i, data_point_j)):
+                    duplicate_tensors += 1
+    if duplicate_tensors != (len(input_tensor) - 1) * len(input_tensor):
+        return True
+    return False
 
 def test_train_step():
     pass
+    # check model actually gets updated
+    # check loss buffer dumps 
 
 
 def test_eval_step():
     pass
+    # check model actually gets updated
+    # check loss buffer dumps 

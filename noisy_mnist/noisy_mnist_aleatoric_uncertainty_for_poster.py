@@ -222,27 +222,15 @@ class NoisyMNISTExperimentRun:
         if ones_or_zeros == "ones":
             self.loss_buffer_1.append(reward)
             if update % checkpoint_loss == 0:
-                print(self.loss_buffer_1)
-                print(torch.stack(self.loss_buffer_1))
                 self.loss_list_1.append(
                     torch.mean(torch.stack(self.loss_buffer_1)).detach().cpu().numpy()
-                )
-                print(
-                    "loss 0",
-                    torch.mean(torch.stack(self.loss_buffer_1)).detach().cpu().numpy(),
                 )
                 self.loss_buffer_1 = []
         elif ones_or_zeros == "zeros":
             self.loss_buffer_0.append(reward)
             if update % checkpoint_loss == 0:
-                print(self.loss_buffer_0)
-                print(torch.stack(self.loss_buffer_0))
                 self.loss_list_0.append(
                     torch.mean(torch.stack(self.loss_buffer_0)).detach().cpu().numpy()
-                )
-                print(
-                    "loss 0",
-                    torch.mean(torch.stack(self.loss_buffer_0)).detach().cpu().numpy(),
                 )
                 self.loss_buffer_0 = []
 
