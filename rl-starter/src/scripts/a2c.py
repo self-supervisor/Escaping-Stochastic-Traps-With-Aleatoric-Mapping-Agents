@@ -152,7 +152,8 @@ class A2CAlgo(BaseAlgo):
                 else:
                     dist, value = self.acmodel(preprocessed_obs)
             action = dist.sample()
-            obs, extrinsic_reward, done, _ = self.env.step(action.cpu().numpy())
+            action_used = np.random.randint(6, size=16)
+            obs, extrinsic_reward, done, _ = self.env.step(action_used)
             reward = extrinsic_reward
             self.update_visitation_counts(self.env.envs)
             self.obss[i] = self.obs
