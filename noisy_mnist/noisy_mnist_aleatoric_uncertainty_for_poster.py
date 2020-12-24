@@ -143,17 +143,32 @@ class AleatoricNet(nn.Module):
 
 
 class NoisyMNISTExperimentRun:
-    def __init__(self, repeats, training_steps, checkpoint_loss, lr, model):
+    def __init__(
+        self,
+        repeats,
+        training_steps,
+        checkpoint_loss,
+        lr,
+        model,
+        mnist_env_train,
+        mnist_env_test_zeros,
+        mnist_env_test_ones,
+        device=torch.device("cuda" if torch.cuda.is_available() else "cpu"),
+    ):
         self.training_steps = training_steps
         self.checkpoint_loss = checkpoint_loss
         self.repeats = repeats
         self.model = model
         self.device = device
         self.lr = lr
+        self.env_train = mnist_env_train
+        self.env_test_zeros = mnist_env_test_zeros
+        self.env_test_ones = mnist_env_test_ones
+        self.device = device
         self.reset_model()
 
     def run_experiment(self):
-        for repeat in self.repeats:
+        for repeat in range(self.repeats):
             self.reset_model()
             self.reset_loss_buffers()
             for update in tqdm(range(int(self.training_steps))):
@@ -166,23 +181,25 @@ class NoisyMNISTExperimentRun:
         target /= 255
         return data, target
 
-    def compute_loss_and_reward(prediction, target):
+    def compute_loss_and_reward(self, prediction, target):
+        prediction = prediction[0]
         loss = F.mse_loss(prediction, target)
         reward = loss
         return loss, reward
 
     def get_batch(self, env):
-        data, target = env.step()
+        data, target = self.env_train.step()
         data, target = self.preprocess_batch(data, target)
-        data = torch.from_numpy(data).float().to(device)
-        target = torch.from_numpy(target).float().to(device)
+        data = torch.from_numpy(data).float().to(self.device)
+        target = torch.from_numpy(target).float().to(self.device)
         return data, target
 
     def train_step(self, update):
-        data, target = self.get_batch(mnist_env)
+        data, target = self.get_batch(self.env_train)
         self.opt.zero_grad()
         output = self.model(data)
-        loss, reward = self.compute_loss(output, target)
+        output = list(output)
+        loss, reward = self.compute_loss_and_reward(output, target)
         loss.backward()
         self.opt.step()
         self.loss_buffer.append(reward)
@@ -193,21 +210,21 @@ class NoisyMNISTExperimentRun:
             self.loss_buffer = []
 
     def eval_step(self, ones_or_zeros, update):
-        self.model_eval()
-        assert ones_or_zero in ["ones", "zeros"]
-        if ones_or_zero == "ones":
-            env = mnist_env_ones
-        elif ones_or_zero == "zeros":
-            env = mnist_env_zeros
+        self.model.eval()
+        assert ones_or_zeros in ["ones", "zeros"]
+        if ones_or_zeros == "ones":
+            env = self.env_test_zeros
+        elif ones_or_zeros == "zeros":
+            env = self.env_test_ones
         data, target = self.get_batch(env)
         output = self.model(data)
         loss, reward = self.compute_loss_and_reward(output, target)
-        if ones_or_zero == "ones":
+        if ones_or_zeros == "ones":
             self.loss_buffer_1.append(reward)
             if update % checkpoint_loss == 0:
                 print(self.loss_buffer_1)
                 print(torch.stack(self.loss_buffer_1))
-                loss_list_1.append(
+                self.loss_list_1.append(
                     torch.mean(torch.stack(self.loss_buffer_1)).detach().cpu().numpy()
                 )
                 print(
@@ -215,7 +232,7 @@ class NoisyMNISTExperimentRun:
                     torch.mean(torch.stack(self.loss_buffer_1)).detach().cpu().numpy(),
                 )
                 self.loss_buffer_1 = []
-        elif ones_or_zero == "zeros":
+        elif ones_or_zeros == "zeros":
             self.loss_buffer_0.append(reward)
             if update % checkpoint_loss == 0:
                 print(self.loss_buffer_0)
@@ -243,12 +260,31 @@ class NoisyMNISTExperimentRun:
 
 
 class NoisyMNISTExperimentRunAMA(NoisyMNISTExperimentRun):
-    def __init__(self, repeats, training_steps, checkpoint_loss, lr, model):
+    def __init__(
+        self,
+        repeats,
+        training_steps,
+        checkpoint_loss,
+        lr,
+        model,
+        mnist_env_train,
+        mnist_env_test_zeros,
+        mnist_env_test_ones,
+    ):
         NoisyMNISTExperimentRun.__init__(
-            self, repeats, training_steps, checkpoint_loss, lr, model
+            self,
+            repeats,
+            training_steps,
+            checkpoint_loss,
+            lr,
+            model,
+            mnist_env_train,
+            mnist_env_test_zeros,
+            mnist_env_test_ones,
         )
 
     def compute_loss_and_reward(self, prediction, target):
+        mu, sigma = prediction[0], prediction[1]
         mse = F.mse_loss(mu, target, reduction="none")
         loss = torch.mean(torch.exp(-log_sigma) * mse + log_sigma)
         reward = torch.mean(mse - torch.exp(log_sigma))

@@ -1,13 +1,37 @@
 import numpy as np
 import pytest
+import torch
+from noisy_mnist_aleatoric_uncertainty_for_poster import *
 
 
 @pytest.fixture
 def noisy_mnist_env():
-    from noisy_mnist_aleatoric_uncertainty_for_poster import NoisyMnistEnv
 
     mnist_env = NoisyMnistEnv("train", 0, 2)
     return mnist_env
+
+
+@pytest.fixture
+def noisy_mnist_experiment():
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    mnist_env_train = NoisyMnistEnv("train", 0, 2)
+    mnist_env_test_zeros = NoisyMnistEnv("test", 0, 2)
+    mnist_env_test_ones = NoisyMnistEnv("test", 0, 2)
+
+    model = Net()
+    experiment = NoisyMNISTExperimentRun(
+        repeats=1,
+        training_steps=3000,
+        checkpoint_loss=100,
+        lr=0.001,
+        model=model,
+        mnist_env_train=mnist_env_train,
+        mnist_env_test_zeros=mnist_env_test_zeros,
+        mnist_env_test_ones=mnist_env_test_ones,
+        device=device,
+    )
+    return experiment
 
 
 def check_count_of_classes(x_arr, y_arr):
@@ -62,3 +86,19 @@ def test_mnist_env_random_sample_of_number(noisy_mnist_env):
         plt.imshow(np.array(digit).reshape(28, 28))
         plt.title(str(number))
         plt.savefig("test_images/" + str(number) + ".png")
+
+
+def test_run_experiment(noisy_mnist_experiment):
+    noisy_mnist_experiment.run_experiment()
+
+
+def test_get_batch():
+    pass
+
+
+def test_train_step():
+    pass
+
+
+def test_eval_step():
+    pass
