@@ -120,10 +120,29 @@ def batch_is_different(input_tensor):
         return True
     return False
 
-def test_train_step():
-    pass
-    # check model actually gets updated
-    # check loss buffer dumps 
+def test_train_step(noisy_mnist_experiment):
+    import copy
+
+    model_copy = copy.deepcopy(noisy_mnist_experiment.model)
+    loss_buffer_copy = copy.deepcopy(noisy_mnist_experiment.loss_buffer)
+    noisy_mnist_experiment.train_step(1)
+    params = get_params_from_model(noisy_mnist_experiment.model)
+    copy_params = get_params_from_model(model_copy)
+
+    for i, _ in enumerate(params):
+        assert torch.all(torch.eq(copy_params[i], params[i])) == False
+        assert torch.all(torch.eq(copy_params[i], copy_params[i])) == True
+
+    assert len(loss_buffer_copy) == 0 
+    assert len(noisy_mnist_experiment.loss_buffer) > len(loss_buffer_copy)
+    noisy_mnist_experiment.train_step(noisy_mnist_experiment.checkpoint_loss - 1)
+    assert len(noisy_mnist_experiment.loss_buffer) == 0
+
+def get_params_from_model(a_model):
+    params = []
+    for name, param in a_model.named_parameters():
+        params.append(param)
+    return param
 
 
 def test_eval_step():

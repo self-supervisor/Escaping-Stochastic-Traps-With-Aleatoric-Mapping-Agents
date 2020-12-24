@@ -166,6 +166,7 @@ class NoisyMNISTExperimentRun:
         self.env_test_ones = mnist_env_test_ones
         self.device = device
         self.reset_model()
+        self.reset_loss_buffers()
 
     def run_experiment(self):
         for repeat in range(self.repeats):
@@ -195,12 +196,13 @@ class NoisyMNISTExperimentRun:
         return data, target
 
     def train_step(self, update):
+        update += 1
         data, target = self.get_batch(self.env_train)
         self.opt.zero_grad()
         output = self.model(data)
         output = list(output)
         loss, reward = self.compute_loss_and_reward(output, target)
-        loss.backward()
+        loss.backward() 
         self.opt.step()
         self.loss_buffer.append(reward)
         if update % self.checkpoint_loss == 0:
@@ -210,6 +212,7 @@ class NoisyMNISTExperimentRun:
             self.loss_buffer = []
 
     def eval_step(self, ones_or_zeros, update):
+        update += 1
         self.model.eval()
         assert ones_or_zeros in ["ones", "zeros"]
         if ones_or_zeros == "ones":
