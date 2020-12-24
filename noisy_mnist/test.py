@@ -90,24 +90,35 @@ def test_mnist_env_random_sample_of_number(noisy_mnist_env):
 
 def test_run_experiment(noisy_mnist_experiment):
     pass
-    #noisy_mnist_experiment.run_experiment()
+    # noisy_mnist_experiment.run_experiment()
 
 
 def test_get_batch(noisy_mnist_experiment):
-    envs = [noisy_mnist_experiment.env_train, noisy_mnist_experiment.env_test_zeros, noisy_mnist_experiment.env_test_ones]
+    envs = [
+        noisy_mnist_experiment.env_train,
+        noisy_mnist_experiment.env_test_zeros,
+        noisy_mnist_experiment.env_test_ones,
+    ]
     for an_env in envs:
         data, target = noisy_mnist_experiment.get_batch(an_env)
         assertions_for_generated_data(data)
         assertions_for_generated_data(target)
 
+
 def assertions_for_generated_data(input_tensor):
-    assert input_tensor.type() == 'torch.cuda.FloatTensor'
+    assert input_tensor.type() == "torch.cuda.FloatTensor"
     assert input_tensor.max() <= 1.0
     assert input_tensor.min() >= 0.0
-    assert torch.all(torch.eq(input_tensor, torch.zeros_like(input_tensor))) == False 
-    assert torch.all(torch.eq(torch.zeros_like(input_tensor), torch.zeros_like(input_tensor))) == True 
+    assert torch.all(torch.eq(input_tensor, torch.zeros_like(input_tensor))) == False
+    assert (
+        torch.all(
+            torch.eq(torch.zeros_like(input_tensor), torch.zeros_like(input_tensor))
+        )
+        == True
+    )
     assert batch_is_different(input_tensor) == True
     assert batch_is_different(torch.zeros_like(input_tensor)) == False
+
 
 def batch_is_different(input_tensor):
     duplicate_tensors = 0
@@ -120,12 +131,23 @@ def batch_is_different(input_tensor):
         return True
     return False
 
+
 def test_train_step(noisy_mnist_experiment):
     import copy
 
     model_copy = copy.deepcopy(noisy_mnist_experiment.model)
     loss_buffer_copy = copy.deepcopy(noisy_mnist_experiment.loss_buffer)
     noisy_mnist_experiment.train_step(1)
+
+    assert_model_gets_updated(model_copy, noisy_mnist_experiment.model)
+
+    assert len(loss_buffer_copy) == 0
+    assert len(noisy_mnist_experiment.loss_buffer) > len(loss_buffer_copy)
+    noisy_mnist_experiment.train_step(noisy_mnist_experiment.checkpoint_loss - 1)
+    assert len(noisy_mnist_experiment.loss_buffer) == 0
+
+
+def assert_model_gets_updated(old_model, updated_model):
     params = get_params_from_model(noisy_mnist_experiment.model)
     copy_params = get_params_from_model(model_copy)
 
@@ -133,10 +155,6 @@ def test_train_step(noisy_mnist_experiment):
         assert torch.all(torch.eq(copy_params[i], params[i])) == False
         assert torch.all(torch.eq(copy_params[i], copy_params[i])) == True
 
-    assert len(loss_buffer_copy) == 0 
-    assert len(noisy_mnist_experiment.loss_buffer) > len(loss_buffer_copy)
-    noisy_mnist_experiment.train_step(noisy_mnist_experiment.checkpoint_loss - 1)
-    assert len(noisy_mnist_experiment.loss_buffer) == 0
 
 def get_params_from_model(a_model):
     params = []
@@ -145,7 +163,23 @@ def get_params_from_model(a_model):
     return param
 
 
-def test_eval_step():
-    pass
-    # check model actually gets updated
-    # check loss buffer dumps 
+def test_eval_step(noisy_mnist_experiment):
+    import copy
+
+    loss_buffer_1_copy = copy.deepcopy(noisy_mnist_experiment.loss_buffer_1)
+    assert len(loss_buffer_1_copy) == 0
+
+    noisy_mnist_experiment.eval_step("ones", 0)
+    assert len(noisy_mnist_experiment.loss_buffer_1) > len(loss_buffer_1_copy)
+    noisy_mnist_experiment.eval_step("ones", noisy_mnist_experiment.checkpoint_loss - 1)
+    assert len(noisy_mnist_experiment.loss_buffer_1) == 0
+
+    loss_buffer_0_copy = copy.deepcopy(noisy_mnist_experiment.loss_buffer_0)
+    assert len(loss_buffer_0_copy) == 0
+
+    noisy_mnist_experiment.eval_step("zeros", 0)
+    assert len(noisy_mnist_experiment.loss_buffer_0) > len(loss_buffer_0_copy)
+    noisy_mnist_experiment.eval_step(
+        "zeros", noisy_mnist_experiment.checkpoint_loss - 1
+    )
+    assert len(noisy_mnist_experiment.loss_buffer_0) == 0

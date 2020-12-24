@@ -202,7 +202,7 @@ class NoisyMNISTExperimentRun:
         output = self.model(data)
         output = list(output)
         loss, reward = self.compute_loss_and_reward(output, target)
-        loss.backward() 
+        loss.backward()
         self.opt.step()
         self.loss_buffer.append(reward)
         if update % self.checkpoint_loss == 0:
