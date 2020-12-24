@@ -1,36 +1,51 @@
 import numpy as np
 import pytest
 import torch
+
 from noisy_mnist_aleatoric_uncertainty_for_poster import *
 
 
-@pytest.fixture
-def noisy_mnist_env():
+@pytest.fixture(scope="module", params=["train", "test"])
+def noisy_mnist_env(request):
 
-    mnist_env = NoisyMnistEnv("train", 0, 2)
+    mnist_env = NoisyMnistEnv(request.param, 0, 2)
     return mnist_env
 
 
-@pytest.fixture
-def noisy_mnist_experiment():
+@pytest.fixture(scope="module", params=["mse", "aleatoric"])
+def noisy_mnist_experiment(request):
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     mnist_env_train = NoisyMnistEnv("train", 0, 2)
     mnist_env_test_zeros = NoisyMnistEnv("test", 0, 2)
     mnist_env_test_ones = NoisyMnistEnv("test", 0, 2)
 
-    model = Net()
-    experiment = NoisyMNISTExperimentRun(
-        repeats=1,
-        training_steps=3000,
-        checkpoint_loss=100,
-        lr=0.001,
-        model=model,
-        mnist_env_train=mnist_env_train,
-        mnist_env_test_zeros=mnist_env_test_zeros,
-        mnist_env_test_ones=mnist_env_test_ones,
-        device=device,
-    )
+    if request.param == "mse":
+        model = Net()
+        experiment = NoisyMNISTExperimentRun(
+            repeats=1,
+            training_steps=3000,
+            checkpoint_loss=100,
+            lr=0.001,
+            model=model,
+            mnist_env_train=mnist_env_train,
+            mnist_env_test_zeros=mnist_env_test_zeros,
+            mnist_env_test_ones=mnist_env_test_ones,
+            device=device,
+        )
+    elif request.param == "aleatoric":
+        model = AleatoricNet()
+        experiment = NoisyMNISTExperimentRunAMA(
+            repeats=1,
+            training_steps=3000,
+            checkpoint_loss=100,
+            lr=0.001,
+            model=model,
+            mnist_env_train=mnist_env_train,
+            mnist_env_test_zeros=mnist_env_test_zeros,
+            mnist_env_test_ones=mnist_env_test_ones,
+            device=device,
+        )
     return experiment
 
 

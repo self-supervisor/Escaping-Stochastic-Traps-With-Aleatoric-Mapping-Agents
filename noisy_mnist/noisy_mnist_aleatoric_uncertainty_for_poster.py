@@ -259,6 +259,7 @@ class NoisyMNISTExperimentRunAMA(NoisyMNISTExperimentRun):
         mnist_env_train,
         mnist_env_test_zeros,
         mnist_env_test_ones,
+        device,
     ):
         NoisyMNISTExperimentRun.__init__(
             self,
@@ -270,10 +271,11 @@ class NoisyMNISTExperimentRunAMA(NoisyMNISTExperimentRun):
             mnist_env_train,
             mnist_env_test_zeros,
             mnist_env_test_ones,
+            device,
         )
 
     def compute_loss_and_reward(self, prediction, target):
-        mu, sigma = prediction
+        mu, log_sigma = prediction
         mse = F.mse_loss(mu, target, reduction="none")
         loss = torch.mean(torch.exp(-log_sigma) * mse + log_sigma)
         reward = torch.mean(mse - torch.exp(log_sigma))
