@@ -89,8 +89,7 @@ def test_mnist_env_random_sample_of_number(noisy_mnist_env):
 
 
 def test_run_experiment(noisy_mnist_experiment):
-    pass
-    # noisy_mnist_experiment.run_experiment()
+    noisy_mnist_experiment.run_experiment()
 
 
 def test_get_batch(noisy_mnist_experiment):
@@ -148,8 +147,8 @@ def test_train_step(noisy_mnist_experiment):
 
 
 def assert_model_gets_updated(old_model, updated_model):
-    params = get_params_from_model(noisy_mnist_experiment.model)
-    copy_params = get_params_from_model(model_copy)
+    params = get_params_from_model(updated_model)
+    copy_params = get_params_from_model(old_model)
 
     for i, _ in enumerate(params):
         assert torch.all(torch.eq(copy_params[i], params[i])) == False

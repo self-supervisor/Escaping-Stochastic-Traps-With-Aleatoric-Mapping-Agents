@@ -183,7 +183,6 @@ class NoisyMNISTExperimentRun:
         return data, target
 
     def compute_loss_and_reward(self, prediction, target):
-        prediction = prediction[0]
         loss = F.mse_loss(prediction, target)
         reward = loss
         return loss, reward
@@ -200,7 +199,6 @@ class NoisyMNISTExperimentRun:
         data, target = self.get_batch(self.env_train)
         self.opt.zero_grad()
         output = self.model(data)
-        output = list(output)
         loss, reward = self.compute_loss_and_reward(output, target)
         loss.backward()
         self.opt.step()
@@ -224,14 +222,14 @@ class NoisyMNISTExperimentRun:
         loss, reward = self.compute_loss_and_reward(output, target)
         if ones_or_zeros == "ones":
             self.loss_buffer_1.append(reward)
-            if update % checkpoint_loss == 0:
+            if update % self.checkpoint_loss == 0:
                 self.loss_list_1.append(
                     torch.mean(torch.stack(self.loss_buffer_1)).detach().cpu().numpy()
                 )
                 self.loss_buffer_1 = []
         elif ones_or_zeros == "zeros":
             self.loss_buffer_0.append(reward)
-            if update % checkpoint_loss == 0:
+            if update % self.checkpoint_loss == 0:
                 self.loss_list_0.append(
                     torch.mean(torch.stack(self.loss_buffer_0)).detach().cpu().numpy()
                 )
@@ -275,7 +273,7 @@ class NoisyMNISTExperimentRunAMA(NoisyMNISTExperimentRun):
         )
 
     def compute_loss_and_reward(self, prediction, target):
-        mu, sigma = prediction[0], prediction[1]
+        mu, sigma = prediction
         mse = F.mse_loss(mu, target, reduction="none")
         loss = torch.mean(torch.exp(-log_sigma) * mse + log_sigma)
         reward = torch.mean(mse - torch.exp(log_sigma))
