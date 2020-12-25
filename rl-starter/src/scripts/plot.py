@@ -123,13 +123,13 @@ def main(args):
 
         path_strings_noisy_tv = [
             Curious_True_Noisy_True_Uncertain_True,
-        #    Curious_False_Noisy_True_Uncertain_False,
-        #    Curious_True_Noisy_True_Uncertain_False,
+            Curious_False_Noisy_True_Uncertain_False,
+            Curious_True_Noisy_True_Uncertain_False,
         ]
         path_strings_no_noisy = [
-        #    Curious_False_Noisy_False_Uncertain_False,
+            Curious_False_Noisy_False_Uncertain_False,
             Curious_True_Noisy_False_Uncertain_True,
-        #    Curious_True_Noisy_False_Uncertain_False,
+            Curious_True_Noisy_False_Uncertain_False,
         ]
 
         plot("With Noisy TV " + args.environment, path_strings_noisy_tv, quantity)

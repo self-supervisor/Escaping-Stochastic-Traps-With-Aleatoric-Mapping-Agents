@@ -152,8 +152,7 @@ class A2CAlgo(BaseAlgo):
                 else:
                     dist, value = self.acmodel(preprocessed_obs)
             action = dist.sample()
-            action_used = np.random.randint(6, size=16)
-            obs, extrinsic_reward, done, _ = self.env.step(action_used)
+            obs, extrinsic_reward, done, _ = self.env.step(action)
             reward = extrinsic_reward
             self.update_visitation_counts(self.env.envs)
             self.obss[i] = self.obs
@@ -170,7 +169,7 @@ class A2CAlgo(BaseAlgo):
                         intrinsic_reward
                     )
                     intrinsic_reward = normlalised_reward
-                reward = intrinsic_reward + torch.tensor(reward, dtype=torch.float).to(
+                reward = intrinsic_reward + 10 * torch.tensor(reward, dtype=torch.float).to(
                     self.device
                 )
                 loss = torch.sum(mse)
