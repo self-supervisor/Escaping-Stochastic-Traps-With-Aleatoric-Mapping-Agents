@@ -5,7 +5,7 @@ rm *mp4
 frames_before_resets=(10000000000)
 #environments tried: MiniGrid-KeyCorridorS6R3-v0, MiniGrid-DoorKey-5x5-v0, MiniGrid-DoorKey-6x6-v0, MiniGrid-DoorKey-8x8-v0
 # MiniGrid-DoorKey-16x16-v0, MiniGrid-MultiRoom-N6-v0, MiniGrid-KeyCorridorS6R3-v0, MiniGrid-SimpleCrossingS11N5-v0
-environment=MiniGrid-MultiRoom-N4-S5-v0 #   MiniGrid-MultiRoom-N6-v0
+environment=MiniGrid-SimpleCrossingS9N3-v0 #   MiniGrid-MultiRoom-N6-v0
 # environment=MiniGrid-FourRooms-v0
 
 randomise_env=False
@@ -17,7 +17,7 @@ random_seeds=(1 2)
 
 for frames_before_reset in ${frames_before_resets[@]}; do
 
-    reward_weighting=0.1
+    reward_weighting=1
     noisy_tv=(True False)
     curiosity=(True)
     uncertainty=(True)
@@ -38,7 +38,7 @@ for frames_before_reset in ${frames_before_resets[@]}; do
     done
     #wait
 
-    reward_weighting=10
+    reward_weighting=1
     icm_lr=0.001
     noisy_tv=(True False)
     curiosity=(True)

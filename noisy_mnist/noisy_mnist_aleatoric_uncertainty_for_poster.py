@@ -94,11 +94,6 @@ class NoisyMnistEnv:
             return self.get_random_sample_of_number(number)
 
 
-# ## Defining Models ##
-
-# In[6]:
-
-
 # from here https://github.com/L1aoXingyu/pytorch-beginner/tree/master/08-AutoEncoder
 class Net(nn.Module):
     def __init__(self):
