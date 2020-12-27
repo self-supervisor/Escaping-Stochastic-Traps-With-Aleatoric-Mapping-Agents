@@ -155,11 +155,10 @@ class A2CAlgo(BaseAlgo):
                 else:
                     dist, value = self.acmodel(preprocessed_obs)
             action = dist.sample()
-            print("self.random_action", self.random_action)
-            import pdb; pdb.set_trace()
-            if self.random_action == True:
+            #print("self.random_action", self.random_action)
+            if self.random_action == "True":
                 action_used = np.random.randint(6, size=16)
-            elif self.random_action == False:
+            elif self.random_action == "False":
                 action_used = action.cpu().numpy()
             else:
                 raise ValueError("random_action must be True or False")
@@ -205,6 +204,7 @@ class A2CAlgo(BaseAlgo):
                 self.intrinsic_rewards[i] = torch.zeros_like(action)
             self.novel_states_visited[i] = np.count_nonzero(self.visitation_counts)
             if self.reshape_reward is not None:
+                import pdb; pdb.set_trace()
                 self.rewards[i] = torch.tensor(
                     [
                         self.reshape_reward(obs_, action_, reward_, done_)

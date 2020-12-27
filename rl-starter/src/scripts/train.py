@@ -130,7 +130,8 @@ def tuner(icm_lr, reward_weighting, normalise_rewards, args):
             args.optim_alpha,
             args.optim_eps,
             preprocess_obss,
-            args.random_actions,
+            None,
+            args.random_action,
         )
     elif args.algo == "ppo":
         algo = PPOAlgo(
@@ -385,7 +386,7 @@ if __name__ == "__main__":
     parser.add_argument("--icm_lr", help="icm learning rate")
     parser.add_argument("--reward_weighting", help="factor to scale rewards by")
     parser.add_argument("--noisy_tv", help="whether to add a noisy tv or not")
-    parser.add_argument("--random_actions", help="naive policy of simply selecting random actions from action space.")
+    parser.add_argument("--random_action", help="naive policy of simply selecting random actions from action space.")
     parser.add_argument("--frames_before_reset")
     args = parser.parse_args()
 

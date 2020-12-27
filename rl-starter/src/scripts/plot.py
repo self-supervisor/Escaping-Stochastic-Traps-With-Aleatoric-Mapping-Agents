@@ -91,6 +91,8 @@ def main(args):
         Curious_True_Noisy_False_Uncertain_True = []
         Curious_True_Noisy_False_Uncertain_False = []
         Curious_True_Noisy_True_Uncertain_False = []
+        random_Noisy_True = []
+        random_Noisy_False = []
 
         # format: noisy_tv_True_curiosity_True_uncertainty_True_random_seed_29_coefficient_0.0005
         for string in all_strings:
@@ -133,7 +135,7 @@ def main(args):
             if "random_action" in string:
                 if "noisy_tv_False" in string:
                     random_Noisy_False.append(string)
-                if "noisy_tv_True" in string:
+                elif "noisy_tv_True" in string:
                     random_Noisy_True.append(string)
 
         path_strings_noisy_tv = [
