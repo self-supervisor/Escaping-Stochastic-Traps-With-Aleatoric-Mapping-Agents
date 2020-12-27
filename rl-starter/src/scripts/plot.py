@@ -27,6 +27,9 @@ def plot_mean_and_uncertainty(mean, std, label, num_of_points, multiply_factor):
     elif "curiosity True uncertainty False" in label:
         color = "yellow"
         label = "MSE Curiosity"
+    else:
+        color = "purple"
+        label = "random actions"
     plt.plot(
         np.array(range(num_of_points)) * multiply_factor, mean, label=label, color=color
     )
@@ -94,42 +97,56 @@ def main(args):
             if "curiosity_True" in string:
                 if "noisy_tv_True" in string:
                     if "uncertainty_True" in string:
-                        Curious_True_Noisy_True_Uncertain_True.append(string)
+                        if "random_action" not in string:
+                            Curious_True_Noisy_True_Uncertain_True.append(string)
 
             if "curiosity_False" in string:
                 if "noisy_tv_True" in string:
                     if "uncertainty_False" in string:
-                        Curious_False_Noisy_True_Uncertain_False.append(string)
+                        if "random_action" not in string:
+                            Curious_False_Noisy_True_Uncertain_False.append(string)
 
             if "curiosity_False" in string:
                 if "noisy_tv_False" in string:
                     if "uncertainty_False" in string:
-                        Curious_False_Noisy_False_Uncertain_False.append(string)
+                        if "random_action" not in string:
+                            Curious_False_Noisy_False_Uncertain_False.append(string)
 
             if "curiosity_True" in string:
                 if "noisy_tv_False" in string:
                     if "uncertainty_True" in string:
-                        Curious_True_Noisy_False_Uncertain_True.append(string)
+                        if "random_action" not in string:
+                            Curious_True_Noisy_False_Uncertain_True.append(string)
 
             if "curiosity_True" in string:
                 if "noisy_tv_False" in string:
                     if "uncertainty_False" in string:
-                        Curious_True_Noisy_False_Uncertain_False.append(string)
+                        if "random_action" not in string:
+                            Curious_True_Noisy_False_Uncertain_False.append(string)
 
             if "curiosity_True" in string:
                 if "noisy_tv_True" in string:
                     if "uncertainty_False" in string:
-                        Curious_True_Noisy_True_Uncertain_False.append(string)
+                        if "random_action" not in string:
+                            Curious_True_Noisy_True_Uncertain_False.append(string)
+            
+            if "random_action" in string:
+                if "noisy_tv_False" in string:
+                    random_Noisy_False.append(string)
+                if "noisy_tv_True" in string:
+                    random_Noisy_True.append(string)
 
         path_strings_noisy_tv = [
             Curious_True_Noisy_True_Uncertain_True,
             Curious_False_Noisy_True_Uncertain_False,
             Curious_True_Noisy_True_Uncertain_False,
+            random_Noisy_True,
         ]
         path_strings_no_noisy = [
             Curious_False_Noisy_False_Uncertain_False,
             Curious_True_Noisy_False_Uncertain_True,
             Curious_True_Noisy_False_Uncertain_False,
+            random_Noisy_False,
         ]
 
 
