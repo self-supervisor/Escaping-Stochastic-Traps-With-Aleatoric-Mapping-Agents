@@ -390,8 +390,11 @@ if __name__ == "__main__":
     novel_states = tuner(
         float(args.icm_lr), float(args.reward_weighting), args.normalise_rewards, args
     )
-    # with open(
-    #    str(args.model).split("_seed")[0] + "_" + str(args.seed) + ".csv", "a"
-    # ) as fp:
-    #    wr = csv.writer(fp)
-    #    wr.writerow([icm_lr, reward_weighting, novel_states])
+     
+    import csv 
+
+    with open(
+        str(args.model).split("_seed")[0] + "_" + str(args.seed) + ".csv", "a"
+    ) as fp:
+        wr = csv.writer(fp)
+        wr.writerow([float(args.icm_lr), (args.reward_weighting), novel_states])

@@ -145,8 +145,6 @@ class A2CAlgo(BaseAlgo):
             self.algo_count += 1
             self.counts_for_each_thread[i] += 1
             preprocessed_obs = self.preprocess_obss(self.obs, device=self.device)
-            for an_env in self.env.envs:
-                print(an_env.algo_count)
             with torch.no_grad():
                 if self.acmodel.recurrent:
                     dist, value, memory = self.acmodel(
