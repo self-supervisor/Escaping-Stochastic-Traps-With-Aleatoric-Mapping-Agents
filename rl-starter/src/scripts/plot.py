@@ -142,13 +142,13 @@ def main(args):
             Curious_True_Noisy_True_Uncertain_True,
             Curious_False_Noisy_True_Uncertain_False,
             Curious_True_Noisy_True_Uncertain_False,
-            #random_Noisy_True,
+            random_Noisy_True,
         ]
         path_strings_no_noisy = [
             Curious_False_Noisy_False_Uncertain_False,
             Curious_True_Noisy_False_Uncertain_True,
             Curious_True_Noisy_False_Uncertain_False,
-            #random_Noisy_False,
+            random_Noisy_False,
         ]
 
 
