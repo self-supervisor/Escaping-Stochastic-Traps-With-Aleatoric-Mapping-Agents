@@ -11,7 +11,6 @@ def tuner(icm_lr, reward_weighting, normalise_rewards, args):
     from model import ACModel
     from .a2c import A2CAlgo
     from torch_ac import PPOAlgo
-    from utils.reset_wrapper import ResetWrapper
     # from .ppo import PPOAlgo
 
     frames_to_visualise = 200

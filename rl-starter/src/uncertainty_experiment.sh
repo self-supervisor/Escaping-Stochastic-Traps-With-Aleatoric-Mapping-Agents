@@ -8,7 +8,7 @@ frames_before_resets=(8)
 environment=MiniGrid-KeyCorridorS6R3-v0 #, #MiniGrid-FourRooms-v0
 
 randomise_env=False
-frames=500000
+frames=500
 uncertainty_budget=0.0005
 random_seeds=(85 86 87 88 89)
 random_seeds=(1 2 3)
