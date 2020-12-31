@@ -2,10 +2,10 @@ rm *npy
 rm *png
 rm -r storage/*
 rm *mp4
-frames_before_resets=(10000000000)
+frames_before_resets=(8)
 #environments tried: MiniGrid-KeyCorridorS6R3-v0, MiniGrid-DoorKey-5x5-v0, MiniGrid-DoorKey-6x6-v0, MiniGrid-DoorKey-8x8-v0
 # MiniGrid-DoorKey-16x16-v0, MiniGrid-MultiRoom-N6-v0, MiniGrid-KeyCorridorS6R3-v0, MiniGrid-SimpleCrossingS11N5-v0
-environment=MiniGrid-Empty-6x6-v0 #MiniGrid-FourRooms-v0
+environment=MiniGrid-KeyCorridorS6R3-v0 #, #MiniGrid-FourRooms-v0
 
 randomise_env=False
 frames=500000
@@ -22,8 +22,8 @@ for frames_before_reset in ${frames_before_resets[@]}; do
     curiosity=(True)
     uncertainty=(True)
     save_interval=2000
-    normalise_rewards=True
-    icm_lr=0.0001
+    normalise_rewards=False
+    icm_lr=0.001
     visualizing=False
    
     for random_seed in ${random_seeds[@]}; do
@@ -44,7 +44,7 @@ for frames_before_reset in ${frames_before_resets[@]}; do
     curiosity=(True)
     uncertainty=(True)
     save_interval=2000
-    normalise_rewards=True
+    normalise_rewards=False
     icm_lr=0.0001
     visualizing=False
    
@@ -65,7 +65,7 @@ for frames_before_reset in ${frames_before_resets[@]}; do
     noisy_tv=(True False)
     curiosity=(True)
     uncertainty=(False)
-    normalise_reward=True
+    normalise_reward=False
 
     for random_seed in ${random_seeds[@]}; do
         for a_uncertainty in ${uncertainty[@]}; do
