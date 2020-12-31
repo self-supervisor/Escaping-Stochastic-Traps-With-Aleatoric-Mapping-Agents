@@ -27,6 +27,9 @@ def plot_mean_and_uncertainty(mean, std, label, num_of_points, multiply_factor):
     elif "curiosity True uncertainty False" in label:
         color = "yellow"
         label = "MSE Curiosity"
+    else:
+        color = "purple"
+        label = "random actions"
     plt.plot(
         np.array(range(num_of_points)) * multiply_factor, mean, label=label, color=color
     )
@@ -88,52 +91,71 @@ def main(args):
         Curious_True_Noisy_False_Uncertain_True = []
         Curious_True_Noisy_False_Uncertain_False = []
         Curious_True_Noisy_True_Uncertain_False = []
+        random_Noisy_True = []
+        random_Noisy_False = []
 
         # format: noisy_tv_True_curiosity_True_uncertainty_True_random_seed_29_coefficient_0.0005
         for string in all_strings:
             if "curiosity_True" in string:
                 if "noisy_tv_True" in string:
                     if "uncertainty_True" in string:
-                        Curious_True_Noisy_True_Uncertain_True.append(string)
+                        if "random_action" not in string:
+                            Curious_True_Noisy_True_Uncertain_True.append(string)
 
             if "curiosity_False" in string:
                 if "noisy_tv_True" in string:
                     if "uncertainty_False" in string:
-                        Curious_False_Noisy_True_Uncertain_False.append(string)
+                        if "random_action" not in string:
+                            Curious_False_Noisy_True_Uncertain_False.append(string)
 
             if "curiosity_False" in string:
                 if "noisy_tv_False" in string:
                     if "uncertainty_False" in string:
-                        Curious_False_Noisy_False_Uncertain_False.append(string)
+                        if "random_action" not in string:
+                            Curious_False_Noisy_False_Uncertain_False.append(string)
 
             if "curiosity_True" in string:
                 if "noisy_tv_False" in string:
                     if "uncertainty_True" in string:
-                        Curious_True_Noisy_False_Uncertain_True.append(string)
+                        if "random_action" not in string:
+                            Curious_True_Noisy_False_Uncertain_True.append(string)
 
             if "curiosity_True" in string:
                 if "noisy_tv_False" in string:
                     if "uncertainty_False" in string:
-                        Curious_True_Noisy_False_Uncertain_False.append(string)
+                        if "random_action" not in string:
+                            Curious_True_Noisy_False_Uncertain_False.append(string)
 
             if "curiosity_True" in string:
                 if "noisy_tv_True" in string:
                     if "uncertainty_False" in string:
-                        Curious_True_Noisy_True_Uncertain_False.append(string)
+                        if "random_action" not in string:
+                            Curious_True_Noisy_True_Uncertain_False.append(string)
+            
+            if "random_action" in string:
+                if "noisy_tv_False" in string:
+                    random_Noisy_False.append(string)
+                elif "noisy_tv_True" in string:
+                    random_Noisy_True.append(string)
 
         path_strings_noisy_tv = [
             Curious_True_Noisy_True_Uncertain_True,
             Curious_False_Noisy_True_Uncertain_False,
             Curious_True_Noisy_True_Uncertain_False,
+            random_Noisy_True,
         ]
         path_strings_no_noisy = [
             Curious_False_Noisy_False_Uncertain_False,
             Curious_True_Noisy_False_Uncertain_True,
             Curious_True_Noisy_False_Uncertain_False,
+            random_Noisy_False,
         ]
 
-        plot("With Noisy TV " + args.environment, path_strings_noisy_tv, quantity)
-        plot("Without Noisy TV " + args.environment, path_strings_no_noisy, quantity)
+
+        plot("With Noisy TV ", path_strings_noisy_tv, quantity)
+        plot("Without Noisy TV ", path_strings_no_noisy, quantity)
+        #plot("With Noisy TV " + args.environment + args.reward_weighting + args.normalise_rewards + args.icm_lr, path_strings_noisy_tv, quantity)
+        #plot("Without Noisy TV " + args.environment + args.reward_weighting + args.normalise_rewards + args.icm_lr, path_strings_no_noisy, quantity)
 
 
 if __name__ == "__main__":
@@ -142,5 +164,8 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--environment", type=str)
+    #parser.add_argument("--reward_weighting", type=str)
+    #parser.add_argument("--normalise_rewards", type=str)
+    #parser.add_argument("--icm_lr", type=str)
     args = parser.parse_args()
     main(args)

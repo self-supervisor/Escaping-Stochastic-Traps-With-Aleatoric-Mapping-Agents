@@ -44,6 +44,7 @@ class A2CAlgo(BaseAlgo):
         rmsprop_eps=1e-8,
         preprocess_obss=None,
         reshape_reward=None,
+        random_action=False,
     ):
         num_frames_per_proc = num_frames_per_proc or 8
 
@@ -103,8 +104,9 @@ class A2CAlgo(BaseAlgo):
         self.agents_to_save = []
         self.counts_for_each_thread = [0] * 16
         self.action_stats_logger = ActionStatsLogger(self.env.envs[0].action_space.n)
-        self.env = NoisyTVWrapper(self.env, noisy_tv)
-        
+        self.env = NoisyTVWrapper(self.env, self.noisy_tv)
+        self.counter = 0
+        self.random_action = random_action
 
     def update_visitation_counts(self, envs):
         """
@@ -139,7 +141,7 @@ class A2CAlgo(BaseAlgo):
         # are updated, so gathers a total 128 frames
         loss = 0
         count = 0
-
+        self.counter += 1
         for i in range(self.num_frames_per_proc):
             self.algo_count += 1
             self.counts_for_each_thread[i] += 1
@@ -153,6 +155,14 @@ class A2CAlgo(BaseAlgo):
                     dist, value = self.acmodel(preprocessed_obs)
             action = dist.sample()
             obs, extrinsic_reward, done, _ = self.env.step(action)
+            #print("self.random_action", self.random_action)
+            if self.random_action == "True":
+                action_used = np.random.randint(6, size=16)
+            elif self.random_action == "False":
+                action_used = action.cpu().numpy()
+            else:
+                raise ValueError("random_action must be True or False")
+            obs, extrinsic_reward, done, _ = self.env.step(action_used)
             reward = extrinsic_reward
             self.update_visitation_counts(self.env.envs)
             self.obss[i] = self.obs
@@ -194,6 +204,7 @@ class A2CAlgo(BaseAlgo):
                 self.intrinsic_rewards[i] = torch.zeros_like(action)
             self.novel_states_visited[i] = np.count_nonzero(self.visitation_counts)
             if self.reshape_reward is not None:
+                import pdb; pdb.set_trace()
                 self.rewards[i] = torch.tensor(
                     [
                         self.reshape_reward(obs_, action_, reward_, done_)

@@ -16,12 +16,10 @@ class NoisyTVWrapper(gym.Wrapper):
     def add_noisy_tv(self, obs_tp1, action):
         """
         Noisy TV dependent on the done (6) action.
-
         The range of the noisy TV random ints comes
         from the number of valid values each channel
         can theoretically have in the gym minigrid
         environment.
-
         Returns
         -------
         obs_tp1 : numpy array
@@ -39,4 +37,3 @@ class NoisyTVWrapper(gym.Wrapper):
                     np.stack([a, b, c], axis=3)
                 )
         return obs_tp1
-

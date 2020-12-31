@@ -11,7 +11,7 @@ def tuner(icm_lr, reward_weighting, normalise_rewards, args):
     from model import ACModel
     from .a2c import A2CAlgo
     from torch_ac import PPOAlgo
-
+    from utils.reset_wrapper import ResetWrapper
     # from .ppo import PPOAlgo
 
     frames_to_visualise = 200
@@ -128,6 +128,8 @@ def tuner(icm_lr, reward_weighting, normalise_rewards, args):
             args.optim_alpha,
             args.optim_eps,
             preprocess_obss,
+            None,
+            args.random_action,
         )
     elif args.algo == "ppo":
         algo = PPOAlgo(
@@ -382,14 +384,18 @@ if __name__ == "__main__":
     parser.add_argument("--icm_lr", help="icm learning rate")
     parser.add_argument("--reward_weighting", help="factor to scale rewards by")
     parser.add_argument("--noisy_tv", help="whether to add a noisy tv or not")
+    parser.add_argument("--random_action", help="naive policy of simply selecting random actions from action space.")
     parser.add_argument("--frames_before_reset")
     args = parser.parse_args()
 
     novel_states = tuner(
         float(args.icm_lr), float(args.reward_weighting), args.normalise_rewards, args
     )
-    # with open(
-    #    str(args.model).split("_seed")[0] + "_" + str(args.seed) + ".csv", "a"
-    # ) as fp:
-    #    wr = csv.writer(fp)
-    #    wr.writerow([icm_lr, reward_weighting, novel_states])
+     
+    import csv 
+
+    with open(
+        str(args.model).split("_seed")[0] + "_" + str(args.seed) + ".csv", "a"
+    ) as fp:
+        wr = csv.writer(fp)
+        wr.writerow([float(args.icm_lr), (args.reward_weighting), novel_states])
