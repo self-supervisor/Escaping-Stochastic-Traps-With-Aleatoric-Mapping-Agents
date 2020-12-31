@@ -171,6 +171,11 @@ class NoisyMNISTExperimentRun:
                 self.train_step(update)
                 self.eval_step("ones", update)
                 self.eval_step("zeros", update)
+            self.save_evaluation_performance()
+
+    def save_evaluation_performance(self):
+        np.save("loss_list_0_repeat_" + str(repeat) + ".npy", self.loss_list_0)
+        np.save("loss_list_1_repeat_" + str(repeat) + ".npy", self.loss_list_1)
 
     def preprocess_batch(self, data, target):
         data /= 255
@@ -275,3 +280,11 @@ class NoisyMNISTExperimentRunAMA(NoisyMNISTExperimentRun):
         loss = torch.mean(torch.exp(-log_sigma) * mse + log_sigma)
         reward = torch.mean(mse - torch.exp(log_sigma))
         return loss, reward
+
+    def save_evaluation_performance(self):
+        np.save(
+            "aleatoric_loss_list_0_repeat_" + str(repeat) + ".npy", self.loss_list_0
+        )
+        np.save(
+            "aleatoric_loss_list_1_repeat_" + str(repeat) + ".npy", self.loss_list_1
+        )
