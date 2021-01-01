@@ -171,11 +171,13 @@ class NoisyMNISTExperimentRun:
                 self.train_step(update)
                 self.eval_step("ones", update)
                 self.eval_step("zeros", update)
-            self.save_evaluation_performance()
+            self.save_evaluation_performance(repeat)
 
-    def save_evaluation_performance(self):
-        np.save("loss_list_0_repeat_" + str(repeat) + ".npy", self.loss_list_0)
-        np.save("loss_list_1_repeat_" + str(repeat) + ".npy", self.loss_list_1)
+    def save_evaluation_performance(self, repeat):
+        np.save(
+            "loss_list_deterministic_repeat_" + str(repeat) + ".npy", self.loss_list_0
+        )
+        np.save("loss_list_stochastic_repeat_" + str(repeat) + ".npy", self.loss_list_1)
 
     def preprocess_batch(self, data, target):
         data /= 255
@@ -281,10 +283,12 @@ class NoisyMNISTExperimentRunAMA(NoisyMNISTExperimentRun):
         reward = torch.mean(mse - torch.exp(log_sigma))
         return loss, reward
 
-    def save_evaluation_performance(self):
+    def save_evaluation_performance(self, repeat):
         np.save(
-            "aleatoric_loss_list_0_repeat_" + str(repeat) + ".npy", self.loss_list_0
+            "aleatoric_loss_list_deterministic_repeat_" + str(repeat) + ".npy",
+            self.loss_list_0,
         )
         np.save(
-            "aleatoric_loss_list_1_repeat_" + str(repeat) + ".npy", self.loss_list_1
+            "aleatoric_loss_list_stochastic_repeat_" + str(repeat) + ".npy",
+            self.loss_list_1,
         )
