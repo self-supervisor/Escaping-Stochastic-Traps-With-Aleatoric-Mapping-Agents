@@ -190,7 +190,7 @@ class NoisyMNISTExperimentRun:
         return loss, reward
 
     def get_batch(self, env):
-        data, target = self.env_train.step()
+        data, target = env.step()
         data, target = self.preprocess_batch(data, target)
         data = torch.from_numpy(data).float().to(self.device)
         target = torch.from_numpy(target).float().to(self.device)
