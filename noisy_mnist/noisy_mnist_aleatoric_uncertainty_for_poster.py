@@ -198,6 +198,7 @@ class NoisyMNISTExperimentRun:
 
     def train_step(self, update):
         update += 1
+        self.model.train()
         data, target = self.get_batch(self.env_train)
         self.opt.zero_grad()
         output = self.model(data)

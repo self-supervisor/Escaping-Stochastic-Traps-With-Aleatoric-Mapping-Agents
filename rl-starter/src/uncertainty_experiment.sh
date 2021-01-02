@@ -39,13 +39,13 @@ for frames_before_reset in ${frames_before_resets[@]}; do
     wait
    
     random_action=False
-    reward_weighting=1
+    reward_weighting=10
     noisy_tv=(True False)
     curiosity=(True)
     uncertainty=(True)
     save_interval=2000
     normalise_rewards=True
-    icm_lr=0.001
+    icm_lr=0.0001
     visualizing=False
    
     for random_seed in ${random_seeds[@]}; do

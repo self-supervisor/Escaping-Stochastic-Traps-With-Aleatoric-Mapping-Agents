@@ -2,7 +2,7 @@ import glob
 import numpy as np
 
 def get_files_to_average_over(uncertainty):
-    files = glob.glob(f"*curiosity_True*uncertainty_{uncertainty}*action_frequencies*npy")
+    files = glob.glob(f"*noisy_tv_True*curiosity_True*uncertainty_{uncertainty}*action_frequencies*npy")
     return files
 
 def load_list_of_dicts(npy_files):
