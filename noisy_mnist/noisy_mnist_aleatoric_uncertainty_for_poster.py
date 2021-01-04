@@ -53,7 +53,7 @@ print("device:", device)
 
 class NoisyMnistEnv:
     def __init__(
-        self, split, input_number_min, input_number_max, batch_size=32, seed=0
+        self, split, input_number_min, input_number_max, batch_size=64, seed=0
     ):
         self.seed = seed
         self.split = split
@@ -279,9 +279,12 @@ class NoisyMNISTExperimentRunAMA(NoisyMNISTExperimentRun):
 
     def compute_loss_and_reward(self, prediction, target):
         mu, log_sigma = prediction
-        mse = F.mse_loss(mu, target, reduction="none")
-        loss = torch.mean(torch.exp(-log_sigma) * mse + log_sigma)
+        mse = F.l1_loss(mu, target, reduction="none")
+        loss = torch.mean(
+            torch.exp(-log_sigma) * mse + log_sigma
+        )
         reward = torch.mean(mse - torch.exp(log_sigma))
+        print("loss", loss)
         return loss, reward
 
     def save_evaluation_performance(self, repeat):
