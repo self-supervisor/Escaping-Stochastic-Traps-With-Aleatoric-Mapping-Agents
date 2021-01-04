@@ -279,12 +279,13 @@ class NoisyMNISTExperimentRunAMA(NoisyMNISTExperimentRun):
 
     def compute_loss_and_reward(self, prediction, target):
         mu, log_sigma = prediction
-        mse = F.l1_loss(mu, target, reduction="none")
+        mae = F.l1_loss(mu, target, reduction="none")
         loss = torch.mean(
-            torch.exp(-log_sigma) * mse + log_sigma
+            torch.exp(-log_sigma) * mae + log_sigma
         )
-        reward = torch.mean(mse - torch.exp(log_sigma))
+        reward = torch.mean(torch.exp(-log_sigma) * mae)
         print("loss", loss)
+        print("reward", reward)
         return loss, reward
 
     def save_evaluation_performance(self, repeat):
