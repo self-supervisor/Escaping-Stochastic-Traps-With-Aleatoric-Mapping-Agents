@@ -47,13 +47,13 @@ x_test_data, y_test_data = mndata.load_testing()
 
 training_steps = 50000
 checkpoint_loss = 1000
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device('cuda:1')
 print("device:", device)
 
 
 class NoisyMnistEnv:
     def __init__(
-        self, split, input_number_min, input_number_max, batch_size=64, seed=0
+        self, split, input_number_min, input_number_max, batch_size=32, seed=0
     ):
         self.seed = seed
         self.split = split
@@ -98,10 +98,10 @@ class NoisyMnistEnv:
 class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
-        self.linear_1 = nn.Linear(28 * 28, 128)
-        self.linear_2 = nn.Linear(128, 128)
-        self.linear_3 = nn.Linear(128, 128)
-        self.linear_4 = nn.Linear(128, 28 * 28)
+        self.linear_1 = nn.Linear(28 * 28, 784)
+        self.linear_2 = nn.Linear(784, 784)
+        self.linear_3 = nn.Linear(784, 784)
+        self.linear_4 = nn.Linear(784, 28 * 28)
 
     def forward(self, x):
         x = F.relu(self.linear_1(x))
@@ -115,20 +115,21 @@ class Net(nn.Module):
 class AleatoricNet(nn.Module):
     def __init__(self):
         super(AleatoricNet, self).__init__()
-        self.linear_1 = nn.Linear(28 * 28, 128)
-        self.linear_2 = nn.Linear(128, 128)
-        self.linear_3_mu = nn.Linear(128, 128)
-        self.linear_4_mu = nn.Linear(128, 28 * 28)
-        self.linear_3_sigma = nn.Linear(128, 128)
-        self.linear_4_sigma = nn.Linear(128, 28 * 28)
+        self.linear_1 = nn.Linear(28 * 28, 784)
+        self.linear_2 = nn.Linear(784, 784)
+        self.linear_4_mu = nn.Linear(784, 784)
+        self.linear_5_mu = nn.Linear(784 * 2, 28 * 28)
+        self.linear_4_sigma = nn.Linear(784, 784)
+        self.linear_5_sigma = nn.Linear(784, 28 * 28)
 
-    def forward(self, x):
-        x = F.relu(self.linear_1(x))
+    def forward(self, input_x):
+        x = F.relu(self.linear_1(input_x))
         x = F.relu(self.linear_2(x))
-        mu = F.relu(self.linear_3_mu(x))
-        mu = self.linear_4_mu(mu)
-        log_sigma = F.relu(self.linear_3_sigma(x))
-        log_sigma = self.linear_4_sigma(log_sigma)
+        mu = F.relu(self.linear_4_mu(x))
+        mu = torch.cat((input_x, mu), dim=1)
+        mu = self.linear_5_mu(mu)
+        log_sigma = F.relu(self.linear_4_sigma(x))
+        log_sigma = self.linear_5_sigma(log_sigma)
         return mu, log_sigma
 
 
@@ -279,13 +280,11 @@ class NoisyMNISTExperimentRunAMA(NoisyMNISTExperimentRun):
 
     def compute_loss_and_reward(self, prediction, target):
         mu, log_sigma = prediction
-        mae = F.l1_loss(mu, target, reduction="none")
+        mse = F.mse_loss(mu, target, reduction="none")
         loss = torch.mean(
-            torch.exp(-log_sigma) * mae + log_sigma
+            torch.exp(-log_sigma) * mse + log_sigma
         )
-        reward = torch.mean(torch.exp(-log_sigma) * mae)
-        print("loss", loss)
-        print("reward", reward)
+        reward = torch.mean(mse - torch.exp(log_sigma))
         return loss, reward
 
     def save_evaluation_performance(self, repeat):
