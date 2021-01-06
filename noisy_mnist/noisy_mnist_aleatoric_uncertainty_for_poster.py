@@ -101,12 +101,13 @@ class Net(nn.Module):
         self.linear_1 = nn.Linear(28 * 28, 784)
         self.linear_2 = nn.Linear(784, 784)
         self.linear_3 = nn.Linear(784, 784)
-        self.linear_4 = nn.Linear(784, 28 * 28)
+        self.linear_4 = nn.Linear(784 * 2, 28 * 28)
 
-    def forward(self, x):
-        x = F.relu(self.linear_1(x))
+    def forward(self, input_x):
+        x = F.relu(self.linear_1(input_x))
         x = F.relu(self.linear_2(x))
         x = F.relu(self.linear_3(x))
+        x = torch.cat((input_x, x), dim=1)
         x = self.linear_4(x)
         return x
 
@@ -117,19 +118,19 @@ class AleatoricNet(nn.Module):
         super(AleatoricNet, self).__init__()
         self.linear_1 = nn.Linear(28 * 28, 784)
         self.linear_2 = nn.Linear(784, 784)
-        self.linear_4_mu = nn.Linear(784, 784)
-        self.linear_5_mu = nn.Linear(784 * 2, 28 * 28)
-        self.linear_4_sigma = nn.Linear(784, 784)
-        self.linear_5_sigma = nn.Linear(784, 28 * 28)
+        self.linear_3_mu = nn.Linear(784, 784)
+        self.linear_4_mu = nn.Linear(784 * 2, 28 * 28)
+        self.linear_3_sigma = nn.Linear(784, 784)
+        self.linear_4_sigma = nn.Linear(784, 28 * 28)
 
     def forward(self, input_x):
         x = F.relu(self.linear_1(input_x))
         x = F.relu(self.linear_2(x))
-        mu = F.relu(self.linear_4_mu(x))
+        mu = F.relu(self.linear_3_mu(x))
         mu = torch.cat((input_x, mu), dim=1)
-        mu = self.linear_5_mu(mu)
-        log_sigma = F.relu(self.linear_4_sigma(x))
-        log_sigma = self.linear_5_sigma(log_sigma)
+        mu = self.linear_4_mu(mu)
+        log_sigma = F.relu(self.linear_3_sigma(x))
+        log_sigma = self.linear_4_sigma(log_sigma)
         return mu, log_sigma
 
 
