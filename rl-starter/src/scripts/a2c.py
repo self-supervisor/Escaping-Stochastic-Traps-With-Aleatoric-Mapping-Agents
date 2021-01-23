@@ -117,7 +117,6 @@ class A2CAlgo(BaseAlgo):
                 self.agents_to_save.append(i)
             self.visitation_counts[env.agent_pos[0]][env.agent_pos[1]] += 1
 
-
     def collect_experiences(self):
         """Collects rollouts and computes advantages.
 
@@ -155,6 +154,7 @@ class A2CAlgo(BaseAlgo):
                 else:
                     dist, value = self.acmodel(preprocessed_obs)
             action = dist.sample()
+            obs, extrinsic_reward, done, _ = self.env.step(action)
             #print("self.random_action", self.random_action)
             if self.random_action == "True":
                 action_used = np.random.randint(6, size=16)
@@ -179,7 +179,7 @@ class A2CAlgo(BaseAlgo):
                         intrinsic_reward
                     )
                     intrinsic_reward = normlalised_reward
-                reward = intrinsic_reward + torch.tensor(reward, dtype=torch.float).to(
+                reward = intrinsic_reward + 10 * torch.tensor(reward, dtype=torch.float).to(
                     self.device
                 )
                 loss = torch.sum(mse)

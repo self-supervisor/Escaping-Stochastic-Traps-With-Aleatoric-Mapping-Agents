@@ -2,7 +2,7 @@ rm *npy
 rm *png
 rm -r storage/*
 rm *mp4
-frames_before_resets=(8)
+frames_before_resets=(10000000000)
 #environments tried: MiniGrid-KeyCorridorS6R3-v0, MiniGrid-DoorKey-5x5-v0, MiniGrid-DoorKey-6x6-v0, MiniGrid-DoorKey-8x8-v0
 # MiniGrid-DoorKey-16x16-v0, MiniGrid-MultiRoom-N6-v0, MiniGrid-KeyCorridorS6R3-v0, MiniGrid-SimpleCrossingS11N5-v0
 environment=MiniGrid-FourRooms-v0
@@ -25,7 +25,7 @@ for frames_before_reset in ${frames_before_resets[@]}; do
     normalise_rewards=False
     icm_lr=0.001
     visualizing=False
-   
+
     for random_seed in ${random_seeds[@]}; do
         for a_uncertainty in ${uncertainty[@]}; do
             for a_noisy_tv in ${noisy_tv[@]}; do
@@ -58,7 +58,7 @@ for frames_before_reset in ${frames_before_resets[@]}; do
             done
         done
     done
-    wait
+    #wait
 
     reward_weighting=10
     icm_lr=0.001
@@ -77,7 +77,7 @@ for frames_before_reset in ${frames_before_resets[@]}; do
             done
         done
     done
-    wait
+    #wait
 
     reward_weighting=10
     icm_lr=0.0001

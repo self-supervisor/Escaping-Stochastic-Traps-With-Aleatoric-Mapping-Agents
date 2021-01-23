@@ -47,7 +47,11 @@ x_test_data, y_test_data = mndata.load_testing()
 
 training_steps = 50000
 checkpoint_loss = 1000
+<<<<<<< HEAD
 device = torch.device('cuda:1')
+=======
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+>>>>>>> main
 print("device:", device)
 
 
@@ -192,7 +196,7 @@ class NoisyMNISTExperimentRun:
         return loss, reward
 
     def get_batch(self, env):
-        data, target = env.step()
+        data, target = self.env_train.step()
         data, target = self.preprocess_batch(data, target)
         data = torch.from_numpy(data).float().to(self.device)
         target = torch.from_numpy(target).float().to(self.device)
@@ -297,3 +301,6 @@ class NoisyMNISTExperimentRunAMA(NoisyMNISTExperimentRun):
             "aleatoric_loss_list_stochastic_repeat_" + str(repeat) + ".npy",
             self.loss_list_1,
         )
+        loss = torch.mean(torch.exp(-log_sigma) * mse + log_sigma)
+        reward = torch.mean(mse - torch.exp(log_sigma))
+        return loss, reward
