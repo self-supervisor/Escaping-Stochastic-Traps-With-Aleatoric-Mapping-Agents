@@ -6,6 +6,10 @@ if [ -d data ]; then
 fi
 
 mkdir data
-wget --recursive --level=1 --cut-dirs=3 --no-host-di
+wget --recursive --level=1 --cut-dirs=3 --no-host-directories \
+  --directory-prefix=data --accept '*.gz' http://yann.lecun.com/exdb/mnist/
+pushd data
+gunzip *
+cd ..
 pytest
 jupyter notebook noisy_mnist.ipynb

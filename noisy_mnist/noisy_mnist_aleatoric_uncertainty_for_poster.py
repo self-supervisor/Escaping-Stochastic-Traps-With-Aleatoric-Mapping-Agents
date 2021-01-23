@@ -1,3 +1,18 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[1]:
+
+
+# !pip install pytest==5.4.0
+# !pip install pytest
+
+
+# ## Defining Noisy Environment ##
+
+# In[2]:
+
+
 from __future__ import print_function
 
 import argparse
@@ -23,13 +38,16 @@ plt.rc("xtick", labelsize="large")
 plt.rc("ytick", labelsize="large")
 
 
+# In[3]:
+
+
 mndata = MNIST("data")
 x_train_data, y_train_data = mndata.load_training()
 x_test_data, y_test_data = mndata.load_testing()
 
 training_steps = 50000
 checkpoint_loss = 1000
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device('cuda:1')
 print("device:", device)
 
 
@@ -174,7 +192,7 @@ class NoisyMNISTExperimentRun:
         return loss, reward
 
     def get_batch(self, env):
-        data, target = self.env_train.step()
+        data, target = env.step()
         data, target = self.preprocess_batch(data, target)
         data = torch.from_numpy(data).float().to(self.device)
         target = torch.from_numpy(target).float().to(self.device)
@@ -264,7 +282,9 @@ class NoisyMNISTExperimentRunAMA(NoisyMNISTExperimentRun):
     def compute_loss_and_reward(self, prediction, target):
         mu, log_sigma = prediction
         mse = F.mse_loss(mu, target, reduction="none")
-        loss = torch.mean(torch.exp(-log_sigma) * mse + log_sigma)
+        loss = torch.mean(
+            torch.exp(-log_sigma) * mse + log_sigma
+        )
         reward = torch.mean(mse - torch.exp(log_sigma))
         return loss, reward
 

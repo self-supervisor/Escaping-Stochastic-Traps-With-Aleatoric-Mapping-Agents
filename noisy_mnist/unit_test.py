@@ -92,15 +92,15 @@ def test_mnist_env_random_sample_of_number(noisy_mnist_env):
     import os
     import shutil
 
-    if os.path.isdir("test_images"):
-        shutil.rmtree("test_images")
-    os.mkdir("test_images")
+    if os.path.isdir("unit_test_images"):
+        shutil.rmtree("unit_test_images")
+    os.mkdir("unit_test_images")
 
     for number in range(0, 10):
         digit = noisy_mnist_env.get_random_sample_of_number(number)
         plt.imshow(np.array(digit).reshape(28, 28))
         plt.title(str(number))
-        plt.savefig("test_images/" + str(number) + ".png")
+        plt.savefig("unit_test_images/" + str(number) + ".png")
 
 
 def test_run_experiment(noisy_mnist_experiment):
