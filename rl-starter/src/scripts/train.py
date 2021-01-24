@@ -11,6 +11,7 @@ def tuner(icm_lr, reward_weighting, normalise_rewards, args):
     from model import ACModel
     from .a2c import A2CAlgo
     from torch_ac import PPOAlgo
+
     # from .ppo import PPOAlgo
 
     frames_to_visualise = 200
@@ -61,10 +62,12 @@ def tuner(icm_lr, reward_weighting, normalise_rewards, args):
     # Load environments
 
     envs = []
-    #import pdb; pdb.set_trace()
-    
+    # import pdb; pdb.set_trace()
+
     for i in range(16):
-        an_env = utils.make_env(args.env, int(args.frames_before_reset), int(args.environment_seed))
+        an_env = utils.make_env(
+            args.env, int(args.frames_before_reset), int(args.environment_seed)
+        )
         envs.append(an_env)
     txt_logger.info("Environments loaded\n")
 
@@ -385,15 +388,18 @@ if __name__ == "__main__":
     parser.add_argument("--icm_lr", help="icm learning rate")
     parser.add_argument("--reward_weighting", help="factor to scale rewards by")
     parser.add_argument("--noisy_tv", help="whether to add a noisy tv or not")
-    parser.add_argument("--random_action", help="naive policy of simply selecting random actions from action space.")
+    parser.add_argument(
+        "--random_action",
+        help="naive policy of simply selecting random actions from action space.",
+    )
     parser.add_argument("--frames_before_reset")
     args = parser.parse_args()
 
     novel_states = tuner(
         float(args.icm_lr), float(args.reward_weighting), args.normalise_rewards, args
     )
-     
-    import csv 
+
+    import csv
 
     with open(
         str(args.model).split("_seed")[0] + "_" + str(args.seed) + ".csv", "a"
