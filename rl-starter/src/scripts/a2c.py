@@ -13,6 +13,7 @@ import math
 from .conversion_utils import scale_for_autoencoder
 from utils.noisy_tv_wrapper import NoisyTVWrapper
 
+
 class A2CAlgo(BaseAlgo):
     """The Advantage Actor-Critic algorithm."""
 
@@ -154,8 +155,7 @@ class A2CAlgo(BaseAlgo):
                 else:
                     dist, value = self.acmodel(preprocessed_obs)
             action = dist.sample()
-            obs, extrinsic_reward, done, _ = self.env.step(action)
-            #print("self.random_action", self.random_action)
+            # print("self.random_action", self.random_action)
             if self.random_action == "True":
                 action_used = np.random.randint(6, size=16)
             elif self.random_action == "False":
@@ -179,7 +179,7 @@ class A2CAlgo(BaseAlgo):
                         intrinsic_reward
                     )
                     intrinsic_reward = normlalised_reward
-                reward = intrinsic_reward + 10 * torch.tensor(reward, dtype=torch.float).to(
+                reward = intrinsic_reward + torch.tensor(reward, dtype=torch.float).to(
                     self.device
                 )
                 loss = torch.sum(mse)
@@ -204,7 +204,9 @@ class A2CAlgo(BaseAlgo):
                 self.intrinsic_rewards[i] = torch.zeros_like(action)
             self.novel_states_visited[i] = np.count_nonzero(self.visitation_counts)
             if self.reshape_reward is not None:
-                import pdb; pdb.set_trace()
+                import pdb
+
+                pdb.set_trace()
                 self.rewards[i] = torch.tensor(
                     [
                         self.reshape_reward(obs_, action_, reward_, done_)
