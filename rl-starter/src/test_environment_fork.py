@@ -6,27 +6,24 @@ import pytest
 import numpy as np
 
 
-@pytest.fixture
-def key_corridor_altered():
-    env = gym.make("MiniGrid-KeyCorridorS6R3-v0")
+@pytest.fixture(scope="module",params=[1,2,3,100,89,2000])
+def key_corridor_altered(request):
+    from utils import make_env
+
+    seed = request.param
+    env = make_env("MiniGrid-KeyCorridorS6R3-v0", 8, seed)
     return env
 
 
 def test_not_procedural(key_corridor_altered):
     import random
 
-    _ = key_corridor_altered.reset()
     initial_position = key_corridor_altered.agent_pos
-    for _ in range(1000):
-        done = False
-        while done == False:
-            obs, reward, done, info = key_corridor_altered.step(random.randint(0, 6))
-        key_corridor_altered.step(random.randint(0, 6))
+    for _ in range(100):
+        for _ in range(8):
+            obs, reward, done, info = key_corridor_altered.step(random.randint(0,6))
+            if done:
+                key_corridor_altered.reset()
         assert np.array_equal(key_corridor_altered.agent_pos, initial_position)
 
 
-def test_episode_length():
-    # loop through 8 steps
-    # assert environment resets
-    # and returns done after 8 steps
-    pass
