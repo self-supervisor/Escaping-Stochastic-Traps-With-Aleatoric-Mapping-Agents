@@ -44,10 +44,10 @@ https://stackoverflow.com/questions/5543651/computing-standard-deviation-in-a-st
 # If you find that this code/paper is useful enough for a citation use the following bibtex:
 
 ```
-@misc{parker2020escaping,
+@article{mavor2021escaping,
   title={Escaping Stochastic Traps with Aleatoric Mapping Agents},
-  author={Mavor-Parker, Augustine N. and Young, Kimberly A. and Barry, Caswell and Griffin, Lewis D.},
-  booktitle={NeurIPS Biological and Artificial Reinforcement Learning Workshop},
-  year={2020}
+  author={Mavor-Parker, Augustine N and Young, Kimberly A and Barry, Caswell and Griffin, Lewis D},
+  journal={arXiv preprint arXiv:2102.04399},
+  year={2021}
 }
 ```
