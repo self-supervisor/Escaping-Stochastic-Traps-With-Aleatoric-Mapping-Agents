@@ -18,7 +18,7 @@ class AutoencoderWithUncertainty(nn.Module):
             nn.Linear(621, 147), nn.ReLU(), nn.Linear(147, 147)
         )
         self.uncertainty_predictor = nn.Sequential(
-            nn.Linear(621, 147), nn.ReLU(), nn.Linear(147, 147), nn.ReLU()
+            nn.Linear(621, 147), nn.Tanh(), nn.Linear(147, 147)
         )
 
     def forward(self, inputs, action_vector):

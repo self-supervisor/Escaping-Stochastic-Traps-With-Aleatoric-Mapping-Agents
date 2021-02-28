@@ -175,6 +175,7 @@ class A2CAlgo(BaseAlgo):
                 mse, intrinsic_reward, uncertainty = self.icm.compute_intrinsic_rewards(
                     self.obss[i], self.obs, action
                 )
+                print("Uncertainty", uncertainty)
                 if self.normalise_rewards == "True":
                     normlalised_reward = self.moving_average_reward.include_tensor(
                         intrinsic_reward
