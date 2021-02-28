@@ -12,10 +12,10 @@ class AutoencoderWithUncertainty(nn.Module):
             nn.Conv2d(
                 in_channels=3, out_channels=32, kernel_size=(3, 3), stride=2, padding=1
             ),
-            nn.ReLU(),
+            nn.Tanh(),
         )
         self.forward_predictor = nn.Sequential(
-            nn.Linear(621, 147), nn.ReLU(), nn.Linear(147, 147)
+            nn.Linear(621, 147), nn.Tanh(), nn.Linear(147, 147)
         )
         self.uncertainty_predictor = nn.Sequential(
             nn.Linear(621, 147), nn.Tanh(), nn.Linear(147, 147)
