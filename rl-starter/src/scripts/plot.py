@@ -153,7 +153,7 @@ def main(args):
 
 
         plot("With Noisy TV ", path_strings_noisy_tv, quantity)
-        #plot("Without Noisy TV ", path_strings_no_noisy, quantity)
+        plot("Without Noisy TV ", path_strings_no_noisy, quantity)
         #plot("With Noisy TV " + args.environment + args.reward_weighting + args.normalise_rewards + args.icm_lr, path_strings_noisy_tv, quantity)
         #plot("Without Noisy TV " + args.environment + args.reward_weighting + args.normalise_rewards + args.icm_lr, path_strings_no_noisy, quantity)
 
