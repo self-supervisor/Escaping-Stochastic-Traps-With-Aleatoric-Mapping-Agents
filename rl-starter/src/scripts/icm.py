@@ -13,7 +13,7 @@ class ICM:
         device,
         preprocess_obss,
         reward_weighting,
-        uncertainty_budget=0.05,
+        uncertainty_budget=1,#0.05,
         grad_clip=40,
     ):
         self.autoencoder = autoencoder
