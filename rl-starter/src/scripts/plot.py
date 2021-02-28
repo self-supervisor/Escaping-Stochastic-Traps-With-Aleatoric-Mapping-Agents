@@ -140,7 +140,7 @@ def main(args):
 
         path_strings_noisy_tv = [
             Curious_True_Noisy_True_Uncertain_True,
-            Curious_False_Noisy_True_Uncertain_False,
+        #    Curious_False_Noisy_True_Uncertain_False,
         #    Curious_True_Noisy_True_Uncertain_False,
         #    random_Noisy_True,
         ]
@@ -152,8 +152,8 @@ def main(args):
         ]
 
 
-        #plot("With Noisy TV ", path_strings_noisy_tv, quantity)
-        plot("Without Noisy TV ", path_strings_no_noisy, quantity)
+        plot("With Noisy TV ", path_strings_noisy_tv, quantity)
+        #plot("Without Noisy TV ", path_strings_no_noisy, quantity)
         #plot("With Noisy TV " + args.environment + args.reward_weighting + args.normalise_rewards + args.icm_lr, path_strings_noisy_tv, quantity)
         #plot("Without Noisy TV " + args.environment + args.reward_weighting + args.normalise_rewards + args.icm_lr, path_strings_no_noisy, quantity)
 
