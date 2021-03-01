@@ -80,6 +80,15 @@ def plot(title, path_strings, quantity):
     plt.savefig(plot_title + "_" + frames + ".png")
 
 
+def ignore_empty_lists(a_list_of_lists):
+    new_list = []
+    for an_item in a_list_of_lists:
+        if len(an_item) == 0:
+            continue
+        new_list.append(an_item)
+    return new_list
+
+
 def main(args):
     quantities_to_plot = ["intrinsic_rewards", "novel_states_visited", "uncertainties"]
     all_strings = glob.glob("storage/*80*")
@@ -140,20 +149,24 @@ def main(args):
 
         path_strings_noisy_tv = [
             Curious_True_Noisy_True_Uncertain_True,
-        #    Curious_False_Noisy_True_Uncertain_False,
-        #    Curious_True_Noisy_True_Uncertain_False,
-        #    random_Noisy_True,
+            Curious_False_Noisy_True_Uncertain_False,
+            Curious_True_Noisy_True_Uncertain_False,
+            random_Noisy_True,
         ]
         path_strings_no_noisy = [
             Curious_False_Noisy_False_Uncertain_False,
             Curious_True_Noisy_False_Uncertain_True,
             Curious_True_Noisy_False_Uncertain_False,
-        #    random_Noisy_False,
+            random_Noisy_False,
         ]
+    
+        path_strings_noisy_tv = ignore_empty_lists(path_strings_noisy_tv)
+        path_strings_no_noisy = ignore_empty_lists(path_strings_no_noisy)
 
-
-        plot("With Noisy TV ", path_strings_noisy_tv, quantity)
-        plot("Without Noisy TV ", path_strings_no_noisy, quantity)
+        if len(path_strings_noisy_tv) > 0:
+            plot("With Noisy TV ", path_strings_noisy_tv, quantity)
+        if len(path_strings_no_noisy) > 0:
+            plot("Without Noisy TV ", path_strings_no_noisy, quantity)
         #plot("With Noisy TV " + args.environment + args.reward_weighting + args.normalise_rewards + args.icm_lr, path_strings_noisy_tv, quantity)
         #plot("Without Noisy TV " + args.environment + args.reward_weighting + args.normalise_rewards + args.icm_lr, path_strings_no_noisy, quantity)
 
