@@ -9,7 +9,7 @@ from .conversion_utils import (
     convert_representation_to_rgb,
     convert_obs_to_rgb,
 )
-
+from .models import AutoencoderWithUncertainty
 # from gym_minigrid.wrappers import *
 
 # Parse arguments
@@ -21,7 +21,7 @@ parser.add_argument(
 parser.add_argument(
     "--model", required=True, help="name of the trained model (REQUIRED)"
 )
-parser.add_argument("--seed", type=int, default=0, help="random seed (default: 0)")
+parser.add_argument("--seed", type=int, default=1, help="random seed (default: 0)")
 parser.add_argument(
     "--shift",
     type=int,
@@ -68,7 +68,7 @@ print(f"Device: {device}\n")
 
 # Load environment
 
-env = utils.make_env(args.env, args.seed)
+env = utils.make_env(args.env, frames_before_reset=1, seed=args.seed)
 for _ in range(args.shift):
     env.reset()
 print("Environment loaded\n")
@@ -76,7 +76,8 @@ print("Environment loaded\n")
 # Load agent
 
 model_dir = utils.get_model_dir(args.model)
-autoencoder = torch.load(args.autoencoder_path)
+#autoencoder = torch.load(args.autoencoder_path)
+autoencoder = AutoencoderWithUncertainty(observation_shape=(7,7,3))
 agent = utils.Agent(
     env.observation_space,
     env.action_space,
@@ -91,53 +92,52 @@ print("Agent loaded\n")
 
 # Run the agent
 
-if args.gif:
-    from array2gif import write_gif
+#if args.gif:
+from array2gif import write_gif
 
-    frames = []
-    obs_array = []
-    predicted_obs = []
-    predicted_uncertainty = []
-    combined = []
+frames = []
+obs_array = []
+predicted_obs = []
+predicted_uncertainty = []
+combined = []
 
 # Create a window to view the environment
 env.render("human")
-for episode in range(args.episodes):
+for episode in range(10):
     obs = env.reset()
     action = 0
 
     while True:
 
         env.render("human")
-        if args.gif:
-            frames.append(numpy.moveaxis(env.render("rgb_array"), 2, 0))
+        frames.append(numpy.moveaxis(env.render("rgb_array"), 2, 0))
 
-        a_predicted_obs, a_predicted_unc = agent.autoencoder(
-            scale_for_autoencoder(
-                torch.FloatTensor(obs["image"]).unsqueeze(0).permute(0, 3, 1, 2),
-                normalise=True,
-            ),
-            torch.tensor(action, dtype=torch.int).unsqueeze(0),
-        )
-        predicted_obs.append(
-            a_predicted_obs.permute(0, 3, 2, 1).squeeze(0).detach().numpy()
-        )
-        predicted_uncertainty.append(
-            a_predicted_unc.permute(0, 3, 2, 1).squeeze(0).detach().numpy()
-        )
+        #a_predicted_obs, a_predicted_unc = agent.autoencoder(
+        #    scale_for_autoencoder(
+        #        torch.FloatTensor(obs["image"]).unsqueeze(0).permute(0, 3, 1, 2),
+        #        normalise=True,
+        #    ),
+        #    torch.tensor(action, dtype=torch.int).unsqueeze(0),
+        #)
+        #predicted_obs.append(
+        #    a_predicted_obs.permute(0, 3, 2, 1).squeeze(0).detach().numpy()
+        #)
+        #predicted_uncertainty.append(
+        #    a_predicted_unc.permute(0, 3, 2, 1).squeeze(0).detach().numpy()
+        #)
         action = agent.get_action(obs)
         obs, reward, done, _ = env.step(action)
-        obs_array.append(
-            (
-                scale_for_autoencoder(
-                    (torch.FloatTensor(obs["image"]).unsqueeze(0).permute(0, 3, 1, 2)),
-                    normalise=True,
-                )
-                .squeeze(0)
-                .detach()
-                .numpy()
-            )
-        )
+        #obs_array.append(
+        #    (
+        #        scale_for_autoencoder(
+        #            (torch.FloatTensor(obs["image"]).unsqueeze(0).permute(0, 3, 1, 2)),
+        #            normalise=True,
+        #        )
+        #        .squeeze(0)
+        #        .detach()
+        #        .numpy()
+        #    )
+        #)
         # combined.append(
         #    np.hstack(
         #        (
@@ -150,8 +150,7 @@ for episode in range(args.episodes):
         #            ),
         #        )
         #    )
-        # )
-        agent.analyze_feedback(reward, done)
+        # ) agent.analyze_feedback(reward, done)
 
         if done or env.window.closed:
             break
@@ -159,9 +158,9 @@ for episode in range(args.episodes):
     if env.window.closed:
         break
 
-if args.gif:
-    print("Saving gif... ", end="")
-    # write_gif(numpy.array(frames), args.gif + ".gif", fps=1 / args.pause)
+#if args.gif:
+#print("Saving gif... ", end="")
+#write_gif(numpy.array(frames), "test.gif", fps=5)
     # write_gif(numpy.array(obs_array), args.gif + "_obs_array.gif", fps=1 / args.pause)
     # write_gif(
     #    numpy.array(predicted_obs), args.gif + "_predicted_obs.gif", fps=1 / args.pause
@@ -174,8 +173,7 @@ if args.gif:
     # write_gif(
     #    np.array(combined), args.gif + "_combined.gif", fps=1 / args.pause,
     # )
-    np.save("predicted_obs.npy", predicted_obs)
-    np.save("predicted_uncertainty.npy", predicted_uncertainty)
-    np.save("obs.npy", obs_array)
-    np.save("frames.npy", frames)
-    print("Done.")
+    #np.save("predicted_obs.npy", predicted_obs)
+    #np.save("predicted_uncertainty.npy", predicted_uncertainty)
+    #np.save("obs.npy", obs_array)
+    #np.save("frames.npy", frames)

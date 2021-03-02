@@ -30,10 +30,10 @@ class NoisyTVWrapper(gym.Wrapper):
 
         for i, a_action in enumerate(action):
             if action[i] == 6:
-                a = np.random.randint(0, 6, (5, 5, 1))
-                b = np.random.randint(0, 11, (5, 5, 1))
-                c = np.random.randint(0, 3, (5, 5, 1))
-                obs_tp1[i]["image"][0:5, 0:5, :] = np.squeeze(
+                a = np.random.randint(0, 6, (7, 7, 1))
+                b = np.random.randint(0, 11, (7, 7, 1))
+                c = np.random.randint(0, 3, (7, 7, 1))
+                obs_tp1[i]["image"][0:7, 0:7, :] = np.squeeze(
                     np.stack([a, b, c], axis=3)
                 )
         return obs_tp1
