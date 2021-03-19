@@ -116,7 +116,7 @@ class A2CAlgo(BaseAlgo):
         for i, env in enumerate(envs):
             if self.visitation_counts[env.agent_pos[0]][env.agent_pos[1]] == 0:
                 pass
-                #self.agents_to_save.append(i)
+                # self.agents_to_save.append(i)
             self.visitation_counts[env.agent_pos[0]][env.agent_pos[1]] += 1
 
     def collect_experiences(self):
@@ -168,8 +168,8 @@ class A2CAlgo(BaseAlgo):
             self.update_visitation_counts(self.env.envs)
             self.obss[i] = self.obs
             self.obs = obs
-            #self.current_frames.append(self.obs)
-            #self.previous_frames.append(self.obss[i])
+            # self.current_frames.append(self.obs)
+            # self.previous_frames.append(self.obss[i])
             if self.curiosity == "True":
 
                 mse, intrinsic_reward, uncertainty = self.icm.compute_intrinsic_rewards(
