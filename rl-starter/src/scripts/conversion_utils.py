@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def scale_for_autoencoder(obs, normalise=None):
+def scale_for_forward_model(obs, normalise=None):
     obs[:, :, :, 0] *= 50
     obs[:, :, :, 1] *= 25
     obs[:, :, :, 2] *= 125
@@ -10,7 +10,7 @@ def scale_for_autoencoder(obs, normalise=None):
     return obs
 
 
-def undo_scale_for_autoencoder(obs, normalise=None):
+def undo_scale_for_forward_model(obs, normalise=None):
     if len(obs.shape) == 3:
         obs = np.expand_dims(obs, 0)
     if normalise:

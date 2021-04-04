@@ -131,7 +131,7 @@ def main(args):
                     if "uncertainty_False" in string:
                         if "random_action" not in string:
                             Curious_True_Noisy_True_Uncertain_False.append(string)
-            
+
             if "random_action" in string:
                 if "noisy_tv_False" in string:
                     random_Noisy_False.append(string)
@@ -140,22 +140,21 @@ def main(args):
 
         path_strings_noisy_tv = [
             Curious_True_Noisy_True_Uncertain_True,
-        #    Curious_False_Noisy_True_Uncertain_False,
-        #    Curious_True_Noisy_True_Uncertain_False,
-        #    random_Noisy_True,
+            #    Curious_False_Noisy_True_Uncertain_False,
+            #    Curious_True_Noisy_True_Uncertain_False,
+            #    random_Noisy_True,
         ]
         path_strings_no_noisy = [
-        #    Curious_False_Noisy_False_Uncertain_False,
-            Curious_True_Noisy_False_Uncertain_True,
-        #    Curious_True_Noisy_False_Uncertain_False,
-        #    random_Noisy_False,
+            Curious_False_Noisy_False_Uncertain_False,
+            #    Curious_True_Noisy_False_Uncertain_True,
+            #    Curious_True_Noisy_False_Uncertain_False,
+            #    random_Noisy_False,
         ]
 
-
         plot("With Noisy TV ", path_strings_noisy_tv, quantity)
-        #plot("Without Noisy TV ", path_strings_no_noisy, quantity)
-        #plot("With Noisy TV " + args.environment + args.reward_weighting + args.normalise_rewards + args.icm_lr, path_strings_noisy_tv, quantity)
-        #plot("Without Noisy TV " + args.environment + args.reward_weighting + args.normalise_rewards + args.icm_lr, path_strings_no_noisy, quantity)
+        #:plot("Without Noisy TV ", path_strings_no_noisy, quantity)
+        # plot("With Noisy TV " + args.environment + args.reward_weighting + args.normalise_rewards + args.icm_lr, path_strings_noisy_tv, quantity)
+        # plot("Without Noisy TV " + args.environment + args.reward_weighting + args.normalise_rewards + args.icm_lr, path_strings_no_noisy, quantity)
 
 
 if __name__ == "__main__":
@@ -164,8 +163,8 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--environment", type=str)
-    #parser.add_argument("--reward_weighting", type=str)
-    #parser.add_argument("--normalise_rewards", type=str)
-    #parser.add_argument("--icm_lr", type=str)
+    # parser.add_argument("--reward_weighting", type=str)
+    # parser.add_argument("--normalise_rewards", type=str)
+    # parser.add_argument("--icm_lr", type=str)
     args = parser.parse_args()
     main(args)

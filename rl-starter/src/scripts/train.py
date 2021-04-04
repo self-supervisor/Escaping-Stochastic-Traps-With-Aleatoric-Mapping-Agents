@@ -62,7 +62,6 @@ def tuner(icm_lr, reward_weighting, normalise_rewards, args):
     # Load environments
 
     envs = []
-    # import pdb; pdb.set_trace()
 
     for i in range(16):
         an_env = utils.make_env(
@@ -98,19 +97,19 @@ def tuner(icm_lr, reward_weighting, normalise_rewards, args):
     # Load algo
 
     # adapted from impact driven RL
-    from .models import AutoencoderWithUncertainty
+    from .models import ForwardModel
 
-    autoencoder = AutoencoderWithUncertainty(observation_shape=(7, 7, 3)).to(device)
+    forward_model = ForwardModel().to(device)
 
-    autoencoder_opt = torch.optim.Adam(
-        autoencoder.parameters(), lr=icm_lr, weight_decay=0
+    forward_model_opt = torch.optim.Adam(
+        forward_model.parameters(), lr=icm_lr, weight_decay=0
     )
     if args.algo == "a2c":
         algo = A2CAlgo(
             envs,
             acmodel,
-            autoencoder,
-            autoencoder_opt,
+            forward_model,
+            forward_model_opt,
             args.uncertainty,
             args.noisy_tv,
             args.curiosity,
@@ -139,8 +138,8 @@ def tuner(icm_lr, reward_weighting, normalise_rewards, args):
         algo = PPOAlgo(
             envs,
             acmodel,
-            autoencoder,
-            autoencoder_opt,
+            forward_model,
+            forward_model_opt,
             args.uncertainty,
             args.noisy_tv,
             args.curiosity,
@@ -246,7 +245,7 @@ def tuner(icm_lr, reward_weighting, normalise_rewards, args):
     np.save(f"{args.model}_visitation_counts.npy", algo.visitation_counts)
     if args.visualizing == "True":
         print("got to vis part")
-        algo.save_autoencoder(path=model_dir)
+        algo.save_forward_model(path=model_dir)
         num_frames = 0
         while num_frames < frames_to_visualise:
             if num_frames == 0:

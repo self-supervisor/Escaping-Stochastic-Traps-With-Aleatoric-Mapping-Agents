@@ -10,7 +10,7 @@ from .welford import OnlineVariance
 from .action_stats_logger import ActionStatsLogger
 from .icm import ICM
 import math
-from .conversion_utils import scale_for_autoencoder
+from .conversion_utils import scale_for_forward_model
 from utils.noisy_tv_wrapper import NoisyTVWrapper
 
 
@@ -21,8 +21,8 @@ class A2CAlgo(BaseAlgo):
         self,
         envs,
         acmodel,
-        autoencoder,
-        autoencoder_opt,
+        forward_model,
+        forward_model_opt,
         uncertainty,
         noisy_tv,
         curiosity,
@@ -69,8 +69,8 @@ class A2CAlgo(BaseAlgo):
             self.acmodel.parameters(), lr, alpha=rmsprop_alpha, eps=rmsprop_eps
         )
         self.icm = ICM(
-            autoencoder,
-            autoencoder_opt,
+            forward_model,
+            forward_model_opt,
             uncertainty,
             device,
             self.preprocess_obss,
@@ -116,7 +116,7 @@ class A2CAlgo(BaseAlgo):
         for i, env in enumerate(envs):
             if self.visitation_counts[env.agent_pos[0]][env.agent_pos[1]] == 0:
                 pass
-                #self.agents_to_save.append(i)
+                # self.agents_to_save.append(i)
             self.visitation_counts[env.agent_pos[0]][env.agent_pos[1]] += 1
 
     def collect_experiences(self):
@@ -168,14 +168,14 @@ class A2CAlgo(BaseAlgo):
             self.update_visitation_counts(self.env.envs)
             self.obss[i] = self.obs
             self.obs = obs
-            #self.current_frames.append(self.obs)
-            #self.previous_frames.append(self.obss[i])
+            # self.current_frames.append(self.obs)
+            # self.previous_frames.append(self.obss[i])
             if self.curiosity == "True":
 
                 mse, intrinsic_reward, uncertainty = self.icm.compute_intrinsic_rewards(
                     self.obss[i], self.obs, action
                 )
-                print("Uncertainty", uncertainty)
+                # print("Uncertainty", torch.exp(uncertainty))
                 if self.normalise_rewards == "True":
                     normlalised_reward = self.moving_average_reward.include_tensor(
                         intrinsic_reward
