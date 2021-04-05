@@ -74,8 +74,9 @@ class A2CAlgo(BaseAlgo):
             uncertainty,
             device,
             self.preprocess_obss,
-            reward_weighting,
+            reward_weighting=1,
         )
+        self.reward_weighting = reward_weighting
         self.action = torch.Tensor([4] * 16)
         self.noisy_action_count = 0
         self.noisy_tv = noisy_tv
@@ -181,6 +182,8 @@ class A2CAlgo(BaseAlgo):
                         intrinsic_reward
                     )
                     intrinsic_reward = normlalised_reward
+                intrinsic_reward *= self.reward_weighting
+                intrinsic_reward = torch.clamp(intrinsic_reward, -5, 5)
                 reward = intrinsic_reward + torch.tensor(reward, dtype=torch.float).to(
                     self.device
                 )

@@ -13,7 +13,7 @@ class ICM:
         device,
         preprocess_obss,
         reward_weighting,
-        uncertainty_budget=0.005,
+        uncertainty_budget=1,  # 0.005,
         grad_clip=40,
     ):
         self.forward_model = forward_model
@@ -57,14 +57,16 @@ class ICM:
         old_obs = scale_for_forward_model(
             self.preprocess_obss(old_obs, device=self.device).image, normalise=True
         )
-        forward_prediction, uncertainty = self.forward_model(old_obs, action)
+        action_vector = torch.tensor(torch.stack([action] * 16), dtype=torch.float).to(
+            self.device
+        )
+        action_vector /= 6
+        forward_prediction, uncertainty = self.forward_model(old_obs, action_vector)
         self.predicted_frames.append(forward_prediction)
         self.predicted_uncertainty_frames.append(uncertainty)
         if self.uncertainty == "True":
             mse = F.mse_loss(forward_prediction, new_obs, reduction="none")
-            loss = 0.5 * torch.sum(
-                torch.exp(-uncertainty) * mse + self.uncertainty_budget * uncertainty
-            )
+            loss = 0.5 * torch.sum(torch.exp(-uncertainty) * mse + uncertainty)
             reward = torch.mean(mse - torch.exp(uncertainty), dim=(1, 2, 3))
             print("reward", reward)
         else:

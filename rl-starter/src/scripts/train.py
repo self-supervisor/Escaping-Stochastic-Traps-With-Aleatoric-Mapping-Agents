@@ -400,8 +400,6 @@ if __name__ == "__main__":
 
     import csv
 
-    with open(
-        str(args.model).split("_seed")[0] + "_" + str(args.seed) + ".csv", "a"
-    ) as fp:
+    with open(str(args.model) + ".csv", "a") as fp:
         wr = csv.writer(fp)
         wr.writerow([float(args.icm_lr), (args.reward_weighting), novel_states])

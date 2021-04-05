@@ -83,70 +83,70 @@ class OutConv(nn.Module):
         return self.conv(x)
 
 
-# class ForwardModel(nn.Module):
-#    def __init__(self, n_channels=3, n_classes=3, bilinear=True):
-#        super(ForwardModel, self).__init__()
-#        self.n_channels = n_channels
-#        self.n_classes = n_classes
-#        self.bilinear = bilinear
-#
-#        self.inc = DoubleConv(n_channels, 64)
-#        self.down1 = Down(64, 64 - 16)
-#        factor = 2 if bilinear else 1
-#        self.up4 = Up(128, 64, bilinear)
-#        self.outc = OutConv(64, n_classes)
-#        self.up4_sigma = Up(128, 64, bilinear)
-#        self.outc_sigma = OutConv(64, n_classes)
-#
-#    def forward(self, x, action_vector):
-#        x = x.permute(0, 3, 1, 2)
-#        x1 = self.inc(x)
-#        x2 = self.down1(x1)
-#        action_vector = torch.stack([action_vector] * 3, dim=2)
-#        action_vector = torch.stack([action_vector] * 3, dim=2)
-#        x2 = torch.cat((x2, action_vector), dim=1)
-#        x = self.up4(x2, x1)
-#        logits = self.outc(x).view(-1, 7, 7, 3)
-#        x_sigma = self.up4_sigma(x2, x1)
-#        logits_sigma = self.outc_sigma(x_sigma).view(-1, 7, 7, 3)
-#        return logits, logits_sigma
-
-
 class ForwardModel(nn.Module):
-    def __init__(self):
+    def __init__(self, n_channels=3, n_classes=3, bilinear=True):
         super(ForwardModel, self).__init__()
-        self.encoder = nn.Sequential(
-            nn.Conv2d(4, 16, 2, stride=1, padding=1),  # b, 16, 10, 10
-            nn.ReLU(True),
-            nn.MaxPool2d(2, stride=2),  # b, 16, 5, 5
-            nn.Conv2d(16, 8, 3, stride=1, padding=1),  # b, 8, 3, 3
-            nn.ReLU(True),
-            nn.MaxPool2d(2, stride=1),  # b, 8, 2, 2
-        )
-        self.decoder = nn.Sequential(
-            nn.ConvTranspose2d(8, 16, 3, stride=2),  # b, 16, 5, 5
-            nn.ReLU(True),
-            nn.ConvTranspose2d(16, 8, 3, stride=1, padding=1),  # b, 8, 15, 15
-            nn.ReLU(True),
-            nn.ConvTranspose2d(8, 3, 3, stride=1, padding=1),  # b, 1, 28, 28
-        )
-        self.decoder_sigma = nn.Sequential(
-            nn.ConvTranspose2d(8, 16, 3, stride=2),  # b, 16, 5, 5
-            nn.ReLU(True),
-            nn.ConvTranspose2d(16, 8, 3, stride=1, padding=1),  # b, 8, 15, 15
-            nn.ReLU(True),
-            nn.ConvTranspose2d(8, 3, 3, stride=1, padding=1),  # b, 1, 28, 28
-        )
+        self.n_channels = n_channels
+        self.n_classes = n_classes
+        self.bilinear = bilinear
 
-    def forward(self, x, action):
-        action_channel = (
-            action.type(torch.FloatTensor) * torch.ones([1, 7, 7, 16])
-        ).permute(3, 0, 1, 2)
+        self.inc = DoubleConv(n_channels, 64)
+        self.down1 = Down(64, 64 - 16)
+        factor = 2 if bilinear else 1
+        self.up4 = Up(128, 64, bilinear)
+        self.outc = OutConv(64, n_classes)
+        self.up4_sigma = Up(128, 64, bilinear)
+        self.outc_sigma = OutConv(64, n_classes)
+
+    def forward(self, x, action_vector):
         x = x.permute(0, 3, 1, 2)
-        x = torch.cat([x, action_channel], dim=1)
-        x = self.encoder(x)
-        x_mean = self.decoder(x)
-        x_sigma = self.decoder_sigma(x)
-        x_mean = x_mean.permute(0, 2, 3, 1)
-        x_sigma = x_sigma.permute(0, 2, 3, 1)
-        return x_mean, x_sigma
+        x1 = self.inc(x)
+        x2 = self.down1(x1)
+        action_vector = torch.stack([action_vector] * 3, dim=2)
+        action_vector = torch.stack([action_vector] * 3, dim=2)
+        x2 = torch.cat((x2, action_vector), dim=1)
+        x = self.up4(x2, x1)
+        logits = self.outc(x).view(-1, 7, 7, 3)
+        x_sigma = self.up4_sigma(x2, x1)
+        logits_sigma = self.outc_sigma(x_sigma).view(-1, 7, 7, 3)
+        return logits, logits_sigma
+
+
+# class ForwardModel(nn.Module):
+#    def __init__(self):
+#        super(ForwardModel, self).__init__()
+#        self.encoder = nn.Sequential(
+#            nn.Conv2d(4, 16, 2, stride=1, padding=1),  # b, 16, 10, 10
+#            nn.ReLU(True),
+#            nn.MaxPool2d(2, stride=2),  # b, 16, 5, 5
+#            nn.Conv2d(16, 8, 3, stride=1, padding=1),  # b, 8, 3, 3
+#            nn.ReLU(True),
+#            nn.MaxPool2d(2, stride=1),  # b, 8, 2, 2
+#        )
+#        self.decoder = nn.Sequential(
+#            nn.ConvTranspose2d(8, 16, 3, stride=2),  # b, 16, 5, 5
+#            nn.ReLU(True),
+#            nn.ConvTranspose2d(16, 8, 3, stride=1, padding=1),  # b, 8, 15, 15
+#            nn.ReLU(True),
+#            nn.ConvTranspose2d(8, 3, 3, stride=1, padding=1),  # b, 1, 28, 28
+#        )
+#        self.decoder_sigma = nn.Sequential(
+#            nn.ConvTranspose2d(8, 16, 3, stride=2),  # b, 16, 5, 5
+#            nn.ReLU(True),
+#            nn.ConvTranspose2d(16, 8, 3, stride=1, padding=1),  # b, 8, 15, 15
+#            nn.ReLU(True),
+#            nn.ConvTranspose2d(8, 3, 3, stride=1, padding=1),  # b, 1, 28, 28
+#        )
+#
+#    def forward(self, x, action):
+#        action_channel = (
+#            action.type(torch.FloatTensor) * torch.ones([1, 7, 7, 16])
+#        ).permute(3, 0, 1, 2)
+#        x = x.permute(0, 3, 1, 2)
+#        x = torch.cat([x, action_channel], dim=1)
+#        x = self.encoder(x)
+#        x_mean = self.decoder(x)
+#        x_sigma = self.decoder_sigma(x)
+#        x_mean = x_mean.permute(0, 2, 3, 1)
+#        x_sigma = x_sigma.permute(0, 2, 3, 1)
+##        return x_mean, x_sigma
