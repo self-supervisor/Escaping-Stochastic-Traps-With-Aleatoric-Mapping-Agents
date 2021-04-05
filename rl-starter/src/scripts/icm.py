@@ -67,8 +67,9 @@ class ICM:
         if self.uncertainty == "True":
             mse = F.mse_loss(forward_prediction, new_obs, reduction="none")
             loss = 0.5 * torch.sum(torch.exp(-uncertainty) * mse + uncertainty)
-            reward = torch.mean(mse - torch.exp(uncertainty), dim=(1, 2, 3))
-            print("reward", reward)
+            reward = torch.clamp(
+                (torch.mean(mse - torch.exp(uncertainty), dim=(1, 2, 3))), -5, 5
+            )
         else:
             reward = F.mse_loss(forward_prediction, new_obs, reduction="none")
             reward = torch.mean(reward, dim=(1, 2, 3))
