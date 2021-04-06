@@ -1,21 +1,16 @@
+from .dictlist import DictList
 import numpy
-import numpy as np
 import torch
 import torch.nn.functional as F
-import torch.nn.utils as nn
-from .dictlist import DictList
+import numpy as np
 from torch_ac.algos.base import BaseAlgo
-from copy import deepcopy
-from .welford import OnlineVariance
-from .action_stats_logger import ActionStatsLogger
 from .icm import ICM
-import math
-from .conversion_utils import scale_for_autoencoder
-from utils.noisy_tv_wrapper import NoisyTVWrapper
+from .action_stats_logger import ActionStatsLogger
 
 
-class A2CAlgo(BaseAlgo):
-    """The Advantage Actor-Critic algorithm."""
+class PPOAlgo(BaseAlgo):
+    """The Proximal Policy Optimization algorithm
+    ([Schulman et al., 2015](https://arxiv.org/abs/1707.06347))."""
 
     def __init__(
         self,
@@ -31,7 +26,6 @@ class A2CAlgo(BaseAlgo):
         environment_seed,
         reward_weighting,
         normalise_rewards,
-        frames_before_reset,
         device=None,
         num_frames_per_proc=None,
         discount=0.99,
@@ -47,9 +41,8 @@ class A2CAlgo(BaseAlgo):
         batch_size=256,
         preprocess_obss=None,
         reshape_reward=None,
-        random_action=False,
     ):
-        num_frames_per_proc = num_frames_per_proc or 8
+        num_frames_per_proc = num_frames_per_proc or 128
 
         super().__init__(
             envs,
@@ -67,46 +60,7 @@ class A2CAlgo(BaseAlgo):
             reshape_reward,
         )
 
-        self.icm = ICM(
-            autoencoder,
-            autoencoder_opt,
-            uncertainty,
-            device,
-            self.preprocess_obss,
-            reward_weighting,
-        )
-        self.action = torch.Tensor([4] * 16)
-        self.noisy_action_count = 0
-        self.noisy_tv = noisy_tv
-        self.curiosity = curiosity
-        self.randomise_env = randomise_env
-        self.uncertainty_budget = float(uncertainty_budget)
-        self.environment_seed = int(environment_seed)
-        self.visitation_counts = np.zeros(
-            (self.env.envs[0].width, self.env.envs[0].height)
-        )
         shape = (self.num_frames_per_proc, self.num_procs)
-        self.intrinsic_rewards = torch.zeros(*shape, device=self.device)
-        self.uncertainties = torch.zeros(*shape, device=self.device)
-        self.novel_states_visited = torch.zeros(*shape, device=self.device)
-        self.reward_weighting = reward_weighting
-        self.moving_average_calculator = OnlineVariance(device=self.device)
-        self.moving_average_reward = OnlineVariance(device=self.device)
-        self.normalise_rewards = normalise_rewards
-        self.algo_count = 0
-        self.frames_before_reset = int(frames_before_reset)
-        self.saving_frames = False
-        self.current_frames = []
-        self.previous_frames = []
-        self.predicted_frames = []
-        self.predicted_uncertainty_frames = []
-        self.intrinsic_reward_buffer = []
-        self.agents_to_save = []
-        self.counts_for_each_thread = [0] * 16
-        self.action_stats_logger = ActionStatsLogger(self.env.envs[0].action_space.n)
-        self.env = NoisyTVWrapper(self.env, self.noisy_tv)
-        self.counter = 0
-        self.random_action = random_action
         self.clip_eps = clip_eps
         self.epochs = epochs
         self.batch_size = batch_size
@@ -115,6 +69,24 @@ class A2CAlgo(BaseAlgo):
 
         self.optimizer = torch.optim.Adam(self.acmodel.parameters(), lr, eps=adam_eps)
         self.batch_num = 0
+        self.icm = ICM(
+            autoencoder,
+            autoencoder_opt,
+            uncertainty,
+            device,
+            self.preprocess_obss,
+            reward_weighting,
+        )
+        self.visitation_counts = np.zeros(
+            (self.env.envs[0].width, self.env.envs[0].height)
+        )
+        self.curiosity = curiosity
+        self.intrinsic_rewards = torch.zeros(*shape, device=self.device)
+        self.uncertainties = torch.zeros(*shape, device=self.device)
+        self.novel_states_visited = torch.zeros(*shape, device=self.device)
+        self.normalise_rewards = normalise_rewards
+        self.intrinsic_reward_buffer = []
+        self.action_stats_logger = ActionStatsLogger(self.env.envs[0].action_space.n)
 
     def update_visitation_counts(self, envs):
         """
@@ -150,10 +122,7 @@ class A2CAlgo(BaseAlgo):
         # are updated, so gathers a total 128 frames
         loss = 0
         count = 0
-        self.counter += 1
         for i in range(self.num_frames_per_proc):
-            self.algo_count += 1
-            self.counts_for_each_thread[i] += 1
             preprocessed_obs = self.preprocess_obss(self.obs, device=self.device)
             with torch.no_grad():
                 if self.acmodel.recurrent:
@@ -163,14 +132,7 @@ class A2CAlgo(BaseAlgo):
                 else:
                     dist, value = self.acmodel(preprocessed_obs)
             action = dist.sample()
-            # print("self.random_action", self.random_action)
-            if self.random_action == "True":
-                action_used = np.random.randint(6, size=16)
-            elif self.random_action == "False":
-                action_used = action.cpu().numpy()
-            else:
-                raise ValueError("random_action must be True or False")
-            obs, extrinsic_reward, done, _ = self.env.step(action_used)
+            obs, extrinsic_reward, done, _ = self.env.step(action)
             reward = extrinsic_reward
             self.update_visitation_counts(self.env.envs)
             self.obss[i] = self.obs
@@ -178,11 +140,9 @@ class A2CAlgo(BaseAlgo):
             # self.current_frames.append(self.obs)
             # self.previous_frames.append(self.obss[i])
             if self.curiosity == "True":
-
                 mse, intrinsic_reward, uncertainty = self.icm.compute_intrinsic_rewards(
                     self.obss[i], self.obs, action
                 )
-                print("Uncertainty", uncertainty)
                 if self.normalise_rewards == "True":
                     normlalised_reward = self.moving_average_reward.include_tensor(
                         intrinsic_reward
@@ -212,21 +172,7 @@ class A2CAlgo(BaseAlgo):
                 self.uncertainties[i] = torch.zeros_like(action)
                 self.intrinsic_rewards[i] = torch.zeros_like(action)
             self.novel_states_visited[i] = np.count_nonzero(self.visitation_counts)
-            if self.reshape_reward is not None:
-                import pdb
-
-                pdb.set_trace()
-                self.rewards[i] = torch.tensor(
-                    [
-                        self.reshape_reward(obs_, action_, reward_, done_)
-                        for obs_, action_, reward_, done_ in zip(
-                            obs, action, reward, done
-                        )
-                    ],
-                    device=self.device,
-                )
-            else:
-                self.rewards[i] = torch.tensor(reward, device=self.device)
+            self.rewards[i] = torch.tensor(reward, device=self.device)
             self.log_probs[i] = dist.log_prob(action)
 
             # Update log values
@@ -461,9 +407,11 @@ class A2CAlgo(BaseAlgo):
     def _get_batches_starting_indexes(self):
         """Gives, for each batch, the indexes of the observations given to
         the model and the experiences used to compute the loss at first.
+
         First, the indexes are the integers from 0 to `self.num_frames` with a step of
         `self.recurrence`, shifted by `self.recurrence//2` one time in two for having
         more diverse batches. Then, the indexes are splited into the different batches.
+
         Returns
         -------
         batches_starting_indexes : list of list of int

@@ -10,7 +10,7 @@ def tuner(icm_lr, reward_weighting, normalise_rewards, args):
     import utils
     from model import ACModel
     from .a2c import A2CAlgo
-    from torch_ac import PPOAlgo
+    from .ppo import PPOAlgo
 
     # from .ppo import PPOAlgo
 
@@ -62,7 +62,6 @@ def tuner(icm_lr, reward_weighting, normalise_rewards, args):
     # Load environments
 
     envs = []
-    # import pdb; pdb.set_trace()
 
     for i in range(16):
         an_env = utils.make_env(
@@ -129,12 +128,8 @@ def tuner(icm_lr, reward_weighting, normalise_rewards, args):
             args.value_loss_coef,
             args.max_grad_norm,
             args.recurrence,
-            args.optim_alpha,
-            args.optim_eps,
-            preprocess_obss,
-            None,
-            args.random_action,
         )
+
     elif args.algo == "ppo":
         algo = PPOAlgo(
             envs,
@@ -147,12 +142,24 @@ def tuner(icm_lr, reward_weighting, normalise_rewards, args):
             args.randomise_env,
             args.uncertainty_budget,
             args.environment_seed,
-            args.normalising_rewards,
+            reward_weighting,
+            normalise_rewards,
             device,
             args.frames_per_proc,
             args.discount,
-            preprocess_obss=preprocess_obss,
+            args.lr,
+            args.gae_lambda,
+            args.entropy_coef,
+            args.value_loss_coef,
+            args.max_grad_norm,
+            args.recurrence,
+            args.optim_eps,
+            args.clip_eps,
+            args.epochs,
+            args.batch_size,
+            preprocess_obss,
         )
+
     else:
         raise ValueError("Incorrect algorithm name: {}".format(args.algo))
 
