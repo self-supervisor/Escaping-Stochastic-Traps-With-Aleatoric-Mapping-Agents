@@ -192,6 +192,7 @@ class A2CAlgo(BaseAlgo):
                     self.device
                 )
                 loss = torch.sum(mse)
+                print("Dynamics loss", loss)
                 self.intrinsic_reward_buffer.append(intrinsic_reward)
                 self.action_stats_logger.add_to_log_dicts(
                     action.detach().numpy(), intrinsic_reward.detach().numpy()

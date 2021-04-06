@@ -6,6 +6,8 @@ import numpy as np
 from torch_ac.algos.base import BaseAlgo
 from .icm import ICM
 from .action_stats_logger import ActionStatsLogger
+from .welford import OnlineVariance
+from utils.noisy_tv_wrapper import NoisyTVWrapper
 
 
 class PPOAlgo(BaseAlgo):
@@ -64,7 +66,7 @@ class PPOAlgo(BaseAlgo):
         self.clip_eps = clip_eps
         self.epochs = epochs
         self.batch_size = batch_size
-
+        self.noisy_tv = noisy_tv
         assert self.batch_size % self.recurrence == 0
 
         self.optimizer = torch.optim.Adam(self.acmodel.parameters(), lr, eps=adam_eps)
@@ -87,6 +89,10 @@ class PPOAlgo(BaseAlgo):
         self.normalise_rewards = normalise_rewards
         self.intrinsic_reward_buffer = []
         self.action_stats_logger = ActionStatsLogger(self.env.envs[0].action_space.n)
+        self.moving_average_calculator = OnlineVariance(device=self.device)
+        self.moving_average_reward = OnlineVariance(device=self.device)
+        self.normalise_rewards = normalise_rewards
+        self.env = NoisyTVWrapper(self.env, self.noisy_tv)
 
     def update_visitation_counts(self, envs):
         """
@@ -148,10 +154,14 @@ class PPOAlgo(BaseAlgo):
                         intrinsic_reward
                     )
                     intrinsic_reward = normlalised_reward
+                intrinsic_reward *= 10
                 reward = intrinsic_reward + torch.tensor(reward, dtype=torch.float).to(
                     self.device
                 )
                 loss = torch.sum(mse)
+                print("loss", loss)
+                print("intrinsic reward", intrinsic_reward)
+                print("uncertainty", torch.exp(uncertainty))
                 self.intrinsic_reward_buffer.append(intrinsic_reward)
                 self.action_stats_logger.add_to_log_dicts(
                     action.detach().numpy(), intrinsic_reward.detach().numpy()
