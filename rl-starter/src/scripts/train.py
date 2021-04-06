@@ -63,7 +63,7 @@ def tuner(icm_lr, reward_weighting, normalise_rewards, args):
 
     envs = []
 
-    for i in range(16):
+    for i in range(128):
         an_env = utils.make_env(
             args.env, int(args.frames_before_reset), int(args.environment_seed)
         )
@@ -303,7 +303,7 @@ if __name__ == "__main__":
         help="number of updates between two saves (default: 10, 0 means no saving)",
     )
     parser.add_argument(
-        "--procs", type=int, default=16, help="number of processes (default: 16)"
+        "--procs", type=int, default=128, help="number of processes (default: 128)"
     )
     parser.add_argument(
         "--frames",

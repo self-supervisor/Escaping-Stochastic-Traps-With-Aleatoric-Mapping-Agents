@@ -6,7 +6,7 @@ import numpy as np
 from torch_ac.algos.base import BaseAlgo
 from .icm import ICM
 from .action_stats_logger import ActionStatsLogger
-from .welford import OnlineVariance
+from welford import Welford
 from utils.noisy_tv_wrapper import NoisyTVWrapper
 
 
@@ -77,11 +77,11 @@ class PPOAlgo(BaseAlgo):
             uncertainty,
             device,
             self.preprocess_obss,
-            reward_weighting,
         )
         self.visitation_counts = np.zeros(
             (self.env.envs[0].width, self.env.envs[0].height)
         )
+        self.reward_weighting = reward_weighting
         self.curiosity = curiosity
         self.intrinsic_rewards = torch.zeros(*shape, device=self.device)
         self.uncertainties = torch.zeros(*shape, device=self.device)
@@ -89,8 +89,7 @@ class PPOAlgo(BaseAlgo):
         self.normalise_rewards = normalise_rewards
         self.intrinsic_reward_buffer = []
         self.action_stats_logger = ActionStatsLogger(self.env.envs[0].action_space.n)
-        self.moving_average_calculator = OnlineVariance(device=self.device)
-        self.moving_average_reward = OnlineVariance(device=self.device)
+        self.online_variance = Welford()
         self.normalise_rewards = normalise_rewards
         self.env = NoisyTVWrapper(self.env, self.noisy_tv)
 
@@ -127,7 +126,6 @@ class PPOAlgo(BaseAlgo):
         # 16 threads running in parallel for 8 frames at a time before parameters
         # are updated, so gathers a total 128 frames
         loss = 0
-        count = 0
         for i in range(self.num_frames_per_proc):
             preprocessed_obs = self.preprocess_obss(self.obs, device=self.device)
             with torch.no_grad():
@@ -143,25 +141,19 @@ class PPOAlgo(BaseAlgo):
             self.update_visitation_counts(self.env.envs)
             self.obss[i] = self.obs
             self.obs = obs
-            # self.current_frames.append(self.obs)
-            # self.previous_frames.append(self.obss[i])
             if self.curiosity == "True":
                 mse, intrinsic_reward, uncertainty = self.icm.compute_intrinsic_rewards(
                     self.obss[i], self.obs, action
                 )
                 if self.normalise_rewards == "True":
-                    normlalised_reward = self.moving_average_reward.include_tensor(
-                        intrinsic_reward
-                    )
-                    intrinsic_reward = normlalised_reward
-                intrinsic_reward *= 10
+                    intrinsic_reward_numpy = intrinsic_reward.detach().cpu().numpy()
+                    self.online_variance.add_all(intrinsic_reward_numpy)
+                    intrinsic_reward /= np.sqrt(self.online_variance.var_s)
+                intrinsic_reward *= self.reward_weighting
                 reward = intrinsic_reward + torch.tensor(reward, dtype=torch.float).to(
                     self.device
                 )
                 loss = torch.sum(mse)
-                print("loss", loss)
-                print("intrinsic reward", intrinsic_reward)
-                print("uncertainty", torch.exp(uncertainty))
                 self.intrinsic_reward_buffer.append(intrinsic_reward)
                 self.action_stats_logger.add_to_log_dicts(
                     action.detach().numpy(), intrinsic_reward.detach().numpy()

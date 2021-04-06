@@ -12,7 +12,6 @@ class ICM:
         uncertainty,
         device,
         preprocess_obss,
-        reward_weighting,
         uncertainty_budget=1,  # 0.1,  # 0.05,
         grad_clip=40,
     ):
@@ -25,12 +24,11 @@ class ICM:
         self.device = device
         self.predicted_frames = []
         self.predicted_uncertainty_frames = []
-        self.reward_weighting = reward_weighting
 
     def update_curiosity_parameters(self, loss):
         self.autoencoder_opt.zero_grad()
         loss.backward()
-        nn.clip_grad_norm_(self.autoencoder.parameters(), self.grad_clip)
+        # nn.clip_grad_norm_(self.autoencoder.parameters(), self.grad_clip)
         self.autoencoder_opt.step()
 
     def compute_intrinsic_rewards(self, old_obs, new_obs, action):
@@ -66,12 +64,13 @@ class ICM:
         self.predicted_uncertainty_frames.append(uncertainty)
         if self.uncertainty == "True":
             mse = F.mse_loss(forward_prediction, new_obs, reduction="none")
-            loss = torch.sum(torch.exp(-uncertainty) * mse + uncertainty)
+            loss = torch.sum(
+                (torch.exp(-uncertainty) * mse + self.uncertainty_budget * uncertainty),
+            )
             reward = torch.mean(mse - torch.exp(uncertainty), dim=(1, 2, 3))
         else:
             reward = F.mse_loss(forward_prediction, new_obs, reduction="none")
             reward = torch.mean(reward, dim=(1, 2, 3))
             loss = torch.sum(reward)
-        reward *= self.reward_weighting
         uncertainty = torch.mean(uncertainty, dim=(1, 2, 3))
         return loss, reward, uncertainty

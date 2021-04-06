@@ -22,7 +22,7 @@ for frames_before_reset in ${frames_before_resets[@]}; do
     curiosity=(True)
     uncertainty=(True)
     save_interval=2000
-    normalise_rewards=False
+    normalise_rewards=True #False
     icm_lr=0.001
     visualizing=False
    

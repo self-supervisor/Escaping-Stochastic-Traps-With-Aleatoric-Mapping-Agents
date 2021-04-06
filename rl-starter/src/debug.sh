@@ -13,7 +13,7 @@ uncertainty_budget=0.0005
 #random_seeds=(85 86 87 88 89)
 random_seeds=(1)
 reward_weightings=(1 10 100)
-normalise_rewards=(True False)
+normalise_rewards=(True)
 icm_lrs=(0.01 0.001 0.0001)
 
 for reward_weighting in ${reward_weightings[@]}; do

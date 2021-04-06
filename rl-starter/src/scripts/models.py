@@ -20,6 +20,7 @@ class AutoencoderWithUncertainty(nn.Module):
         self.uncertainty_predictor = nn.Sequential(
             nn.Linear(621, 147), nn.ReLU(), nn.Linear(147, 147)
         )
+        torch.nn.init.constant(self.uncertainty_predictor[2].weight, -1)
 
     def forward(self, inputs, action_vector):
         inputs_perm = inputs.permute(0, 3, 1, 2)
