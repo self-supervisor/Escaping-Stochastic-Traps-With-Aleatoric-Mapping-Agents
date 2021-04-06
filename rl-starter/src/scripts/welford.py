@@ -25,7 +25,7 @@ class OnlineVariance(object):
         self.delta = datum - self.mean
         self.mean += self.delta / self.n
         self.M2 += self.delta * (datum - self.mean)
-        normalised_reward = (datum - self.mean) / (self.std + 1e-7)
+        normalised_reward = (self.mean) / (self.std + 1e-7)
         return normalised_reward
 
     def include_tensor(self, tensor):
