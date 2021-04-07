@@ -31,28 +31,25 @@ class ACModel(nn.Module, torch_ac.RecurrentACModel):
             nn.Conv2d(16, 32, (2, 2)),
             nn.ReLU(),
             nn.Conv2d(32, 64, (2, 2)),
-            nn.ReLU(),
+            nn.ReLU()
         )
         n = obs_space["image"][0]
         m = obs_space["image"][1]
-        self.image_embedding_size = ((n - 1) // 2 - 2) * ((m - 1) // 2 - 2) * 64
+        self.image_embedding_size = ((n-1)//2-2)*((m-1)//2-2)*64
+
+        for _ in range(100):
+            print("embedding_size", self.image_embedding_size)
 
         # Define memory
         if self.use_memory:
-            self.memory_rnn = nn.LSTMCell(
-                self.image_embedding_size, self.semi_memory_size
-            )
+            self.memory_rnn = nn.LSTMCell(self.image_embedding_size, self.semi_memory_size)
 
         # Define text embedding
         if self.use_text:
             self.word_embedding_size = 32
-            self.word_embedding = nn.Embedding(
-                obs_space["text"], self.word_embedding_size
-            )
+            self.word_embedding = nn.Embedding(obs_space["text"], self.word_embedding_size)
             self.text_embedding_size = 128
-            self.text_rnn = nn.GRU(
-                self.word_embedding_size, self.text_embedding_size, batch_first=True
-            )
+            self.text_rnn = nn.GRU(self.word_embedding_size, self.text_embedding_size, batch_first=True)
 
         # Resize image embedding
         self.embedding_size = self.semi_memory_size
@@ -61,12 +58,16 @@ class ACModel(nn.Module, torch_ac.RecurrentACModel):
 
         # Define actor's model
         self.actor = nn.Sequential(
-            nn.Linear(self.embedding_size, 64), nn.Tanh(), nn.Linear(64, action_space.n)
+            nn.Linear(self.embedding_size, 64),
+            nn.Tanh(),
+            nn.Linear(64, action_space.n)
         )
 
         # Define critic's model
         self.critic = nn.Sequential(
-            nn.Linear(self.embedding_size, 64), nn.Tanh(), nn.Linear(64, 1)
+            nn.Linear(self.embedding_size, 64),
+            nn.Tanh(),
+            nn.Linear(64, 1)
         )
 
         # Initialize parameters correctly
@@ -74,7 +75,7 @@ class ACModel(nn.Module, torch_ac.RecurrentACModel):
 
     @property
     def memory_size(self):
-        return 2 * self.semi_memory_size
+        return 2*self.semi_memory_size
 
     @property
     def semi_memory_size(self):
@@ -86,10 +87,7 @@ class ACModel(nn.Module, torch_ac.RecurrentACModel):
         x = x.reshape(x.shape[0], -1)
 
         if self.use_memory:
-            hidden = (
-                memory[:, : self.semi_memory_size],
-                memory[:, self.semi_memory_size :],
-            )
+            hidden = (memory[:, :self.semi_memory_size], memory[:, self.semi_memory_size:])
             hidden = self.memory_rnn(x, hidden)
             embedding = hidden[0]
             memory = torch.cat(hidden, dim=1)

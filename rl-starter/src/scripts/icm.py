@@ -7,16 +7,20 @@ from .conversion_utils import scale_for_autoencoder
 class ICM:
     def __init__(
         self,
-        autoencoder,
-        autoencoder_opt,
+        autoencoder_ama,
+        autoencoder_ama_opt,
+        autoencoder_mse,
+        autoencoder_mse_opt,
         uncertainty,
         device,
         preprocess_obss,
         uncertainty_budget=1,  # 0.1,  # 0.05,
         grad_clip=40,
     ):
-        self.autoencoder = autoencoder
-        self.autoencoder_opt = autoencoder_opt
+        self.autoencoder_mse = autoencoder_mse
+        self.autoencoder_mse_opt = autoencoder_mse_opt
+        self.autoencoder_ama = autoencoder_ama
+        self.autoencoder_ama_opt = autoencoder_ama_opt
         self.uncertainty = uncertainty
         self.grad_clip = grad_clip
         self.uncertainty_budget = uncertainty_budget
@@ -24,12 +28,15 @@ class ICM:
         self.device = device
         self.predicted_frames = []
         self.predicted_uncertainty_frames = []
+        self.count = 0
 
-    def update_curiosity_parameters(self, loss):
-        self.autoencoder_opt.zero_grad()
+    def update_curiosity_parameters(self, loss_mse, loss_ama):
+        loss = loss_mse + loss_ama
+        self.autoencoder_mse_opt.zero_grad()
+        self.autoencoder_ama_opt.zero_grad()
         loss.backward()
-        # nn.clip_grad_norm_(self.autoencoder.parameters(), self.grad_clip)
-        self.autoencoder_opt.step()
+        self.autoencoder_mse_opt.step()
+        self.autoencoder_ama_opt.step()
 
     def compute_intrinsic_rewards(self, old_obs, new_obs, action):
         """Computes intrinsic rewards.
@@ -59,18 +66,37 @@ class ICM:
             self.device
         )
         action_vector /= 6
-        forward_prediction, uncertainty = self.autoencoder(old_obs, action_vector)
-        self.predicted_frames.append(forward_prediction)
-        self.predicted_uncertainty_frames.append(uncertainty)
+        forward_prediction_mse, uncertainty_mse = self.autoencoder_mse(
+            old_obs, action_vector
+        )
+        forward_prediction_ama, uncertainty_ama = self.autoencoder_ama(
+            old_obs, action_vector
+        )
+        self.count += 1
+        torch.save(action, f"action_{self.count}.pt")
+        torch.save(old_obs, f"old_obs_{self.count}.pt")
+        torch.save(new_obs, f"new_obs_{self.count}.pt")
         if self.uncertainty == "True":
-            mse = F.mse_loss(forward_prediction, new_obs, reduction="none")
-            loss = torch.sum(
-                (torch.exp(-uncertainty) * mse + self.uncertainty_budget * uncertainty),
+            mse_ama = F.mse_loss(forward_prediction_ama, new_obs, reduction="none")
+            mse_ama_copy = mse_ama.detach().clone()
+            loss_ama = torch.sum(
+                torch.mean(
+                    (
+                        torch.exp(-uncertainty_ama) * mse_ama
+                        + self.uncertainty_budget * uncertainty_ama
+                    ),
+                    dim=(1, 2, 3),
+                )
             )
-            reward = torch.mean(mse - torch.exp(uncertainty), dim=(1, 2, 3))
+            print("loss ama", torch.sum(loss_ama))
+            mse_ama = torch.mean(mse_ama_copy, dim=(1, 2, 3))
+            reward = F.mse_loss(forward_prediction_mse, new_obs, reduction="none")
+            reward = torch.mean(reward, dim=(1, 2, 3))
+            loss_mse = torch.sum(reward)
         else:
             reward = F.mse_loss(forward_prediction, new_obs, reduction="none")
             reward = torch.mean(reward, dim=(1, 2, 3))
             loss = torch.sum(reward)
-        uncertainty = torch.mean(uncertainty, dim=(1, 2, 3))
-        return loss, reward, uncertainty
+            mse = reward
+        uncertainty = torch.mean(uncertainty_ama, dim=(1, 2, 3))
+        return loss_mse, loss_ama, mse_ama, reward, uncertainty

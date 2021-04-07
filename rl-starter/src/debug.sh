@@ -8,13 +8,13 @@ frames_before_resets=(8000000000000)
 environment=MiniGrid-MultiRoom-N4-S5-v0 #MiniGrid-KeyCorridorS6R3-v0 #MiniGrid-MultiRoom-N4-S5-v0 #, #MiniGrid-FourRooms-v0
 
 randomise_env=False
-frames=1000000
+frames=500000
 uncertainty_budget=0.0005
 #random_seeds=(85 86 87 88 89)
-random_seeds=(1)
-reward_weightings=(1 10 100)
+random_seeds=(1) #2 3 4 5 6 7 8 9 10)
+reward_weightings=(1)
 normalise_rewards=(True)
-icm_lrs=(0.01 0.001 0.0001)
+icm_lrs=(0.0001)
 
 for reward_weighting in ${reward_weightings[@]}; do
     for normalise_reward in ${normalise_rewards[@]}; do
@@ -37,7 +37,6 @@ for reward_weighting in ${reward_weightings[@]}; do
                         done
                     done
                 done
-                wait
             done
         done
     done

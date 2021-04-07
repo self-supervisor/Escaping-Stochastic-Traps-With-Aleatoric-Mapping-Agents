@@ -18,8 +18,10 @@ class PPOAlgo(BaseAlgo):
         self,
         envs,
         acmodel,
-        autoencoder,
-        autoencoder_opt,
+        autoencoder_mse,
+        autoencoder_mse_opt,
+        autoencoder_ama,
+        autoencoder_ama_opt,
         uncertainty,
         noisy_tv,
         curiosity,
@@ -72,8 +74,10 @@ class PPOAlgo(BaseAlgo):
         self.optimizer = torch.optim.Adam(self.acmodel.parameters(), lr, eps=adam_eps)
         self.batch_num = 0
         self.icm = ICM(
-            autoencoder,
-            autoencoder_opt,
+            autoencoder_mse,
+            autoencoder_mse_opt,
+            autoencoder_ama,
+            autoencoder_ama_opt,
             uncertainty,
             device,
             self.preprocess_obss,
@@ -83,6 +87,7 @@ class PPOAlgo(BaseAlgo):
         )
         self.reward_weighting = reward_weighting
         self.curiosity = curiosity
+        self.mse_rewards = torch.zeros(*shape, device=self.device)
         self.intrinsic_rewards = torch.zeros(*shape, device=self.device)
         self.uncertainties = torch.zeros(*shape, device=self.device)
         self.novel_states_visited = torch.zeros(*shape, device=self.device)
@@ -142,9 +147,13 @@ class PPOAlgo(BaseAlgo):
             self.obss[i] = self.obs
             self.obs = obs
             if self.curiosity == "True":
-                mse, intrinsic_reward, uncertainty = self.icm.compute_intrinsic_rewards(
-                    self.obss[i], self.obs, action
-                )
+                (
+                    loss_mse,
+                    loss_ama,
+                    mse_reward,
+                    intrinsic_reward,
+                    uncertainty,
+                ) = self.icm.compute_intrinsic_rewards(self.obss[i], self.obs, action)
                 if self.normalise_rewards == "True":
                     intrinsic_reward_numpy = intrinsic_reward.detach().cpu().numpy()
                     self.online_variance.add_all(intrinsic_reward_numpy)
@@ -153,13 +162,13 @@ class PPOAlgo(BaseAlgo):
                 reward = intrinsic_reward + torch.tensor(reward, dtype=torch.float).to(
                     self.device
                 )
-                loss = torch.sum(mse)
+                loss_mse = torch.sum(loss_mse)
+                loss_ama = torch.sum(loss_ama)
                 self.intrinsic_reward_buffer.append(intrinsic_reward)
                 self.action_stats_logger.add_to_log_dicts(
                     action.detach().numpy(), intrinsic_reward.detach().numpy()
                 )
-                self.icm.update_curiosity_parameters(loss)
-
+                self.icm.update_curiosity_parameters(loss_mse, loss_ama)
             if self.acmodel.recurrent:
                 self.memories[i] = self.memory
                 self.memory = memory
@@ -170,9 +179,11 @@ class PPOAlgo(BaseAlgo):
             if self.curiosity == "True":
                 self.uncertainties[i] = uncertainty
                 self.intrinsic_rewards[i] = intrinsic_reward
+                self.mse_rewards[i] = mse_reward
             else:
                 self.uncertainties[i] = torch.zeros_like(action)
                 self.intrinsic_rewards[i] = torch.zeros_like(action)
+                self.mse_rewards[i] = torch.zeros_like(action)
             self.novel_states_visited[i] = np.count_nonzero(self.visitation_counts)
             self.rewards[i] = torch.tensor(reward, device=self.device)
             self.log_probs[i] = dist.log_prob(action)
@@ -258,6 +269,7 @@ class PPOAlgo(BaseAlgo):
         exps.reward = self.rewards.transpose(0, 1).reshape(-1)
         intrinsic_rewards = self.intrinsic_rewards.transpose(0, 1).reshape(-1)
         uncertainties = self.uncertainties.transpose(0, 1).reshape(-1)
+        mse_rewards = self.mse_rewards.transpose(0, 1).reshape(-1)
         novel_states_visited = self.novel_states_visited.transpose(0, 1).reshape(-1)
         exps.advantage = self.advantages.transpose(0, 1).reshape(-1)
         exps.returnn = exps.value + exps.advantage
@@ -274,6 +286,7 @@ class PPOAlgo(BaseAlgo):
         logs = {
             "uncertainties": uncertainties,
             "intrinsic_rewards": intrinsic_rewards,
+            "mse_rewards": mse_rewards,
             "novel_states_visited": novel_states_visited,
             "return_per_episode": self.log_return[-keep:],
             "reshaped_return_per_episode": self.log_reshaped_return[-keep:],
