@@ -55,14 +55,18 @@ class ICM:
         old_obs = scale_for_autoencoder(
             self.preprocess_obss(old_obs, device=self.device).image, normalise=True
         )
+        self.count += 1
+        # torch.save(action, f"action_{self.count}.pt")
+        # torch.save(new_obs, f"new_obs_{self.count}.pt")
+        # torch.save(old_obs, f"old_obs_{self.count}.pt")
         if self.uncertainty == "True":
             action_channel = torch.stack(
                 [(torch.ones((7, 7, 1)) * an_action) / 6 for an_action in action]
             ).to(self.device)
             mu, sigma = self.autoencoder(old_obs, action_channel)
             mse = F.mse_loss(mu, new_obs, reduction="none")
-            loss = torch.mean(((torch.exp(-sigma) * mse) + sigma), dim=(1, 2, 3))
-            reward = torch.mean(mse - torch.exp(sigma), dim=(1, 2, 3))
+            loss = torch.mean((torch.exp(-sigma) * mse + sigma), dim=(1, 2, 3))
+            reward = torch.mean(torch.abs(mse - torch.exp(sigma)), dim=(1, 2, 3))
         else:
             action_channel = torch.stack(
                 [(torch.ones((7, 7, 1)) * an_action) / 6 for an_action in action]
@@ -72,4 +76,6 @@ class ICM:
             loss = torch.mean(mse, dim=(1, 2, 3))
             reward = torch.mean(mse, dim=(1, 2, 3))
         uncertainty = torch.mean(sigma, dim=(1, 2, 3))
+        reward *= 10
+
         return loss, reward, uncertainty

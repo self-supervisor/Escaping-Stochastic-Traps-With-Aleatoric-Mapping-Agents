@@ -63,7 +63,7 @@ def tuner(icm_lr, reward_weighting, normalise_rewards, args):
 
     envs = []
 
-    for i in range(128):
+    for i in range(16):
         an_env = utils.make_env(
             args.env, int(args.frames_before_reset), int(args.environment_seed)
         )
@@ -303,7 +303,7 @@ if __name__ == "__main__":
         help="number of updates between two saves (default: 10, 0 means no saving)",
     )
     parser.add_argument(
-        "--procs", type=int, default=128, help="number of processes (default: 128)"
+        "--procs", type=int, default=16, help="number of processes (default: 16)"
     )
     parser.add_argument(
         "--frames",
@@ -323,7 +323,7 @@ if __name__ == "__main__":
         "--frames-per-proc",
         type=int,
         default=None,
-        help="number of frames per process before update (default: 5 for A2C and 128 for PPO)",
+        help="number of frames per process before update (default: 5 for A2C and 16 for PPO)",
     )
     parser.add_argument(
         "--discount", type=float, default=0.99, help="discount factor (default: 0.99)"
