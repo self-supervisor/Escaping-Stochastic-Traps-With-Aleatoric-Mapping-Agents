@@ -21,7 +21,7 @@ for reward_weighting in ${reward_weightings[@]}; do
         for icm_lr in ${icm_lrs[@]}; do
             for frames_before_reset in ${frames_before_resets[@]}; do
                 random_action=False
-                noisy_tv=(False)
+                noisy_tv=(True)
                 curiosity=(True)
                 uncertainty=(True)
                 save_interval=2000
