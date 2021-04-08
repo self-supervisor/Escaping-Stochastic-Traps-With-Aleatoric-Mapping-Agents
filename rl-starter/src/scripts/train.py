@@ -99,15 +99,10 @@ def tuner(icm_lr, reward_weighting, normalise_rewards, args):
     # adapted from impact driven RL
     from .models import AutoencoderWithUncertainty
 
-    autoencoder_mse = AutoencoderWithUncertainty(observation_shape=(7, 7, 3)).to(device)
+    autoencoder = AutoencoderWithUncertainty().to(device)
 
-    autoencoder_mse_opt = torch.optim.Adam(
-        autoencoder_mse.parameters(), lr=icm_lr, weight_decay=0
-    )
-    autoencoder_ama = AutoencoderWithUncertainty(observation_shape=(7, 7, 3)).to(device)
-
-    autoencoder_ama_opt = torch.optim.Adam(
-        autoencoder_ama.parameters(), lr=icm_lr, weight_decay=0
+    autoencoder_opt = torch.optim.Adam(
+        autoencoder.parameters(), lr=icm_lr, weight_decay=0
     )
     if args.algo == "a2c":
         algo = A2CAlgo(
@@ -139,10 +134,8 @@ def tuner(icm_lr, reward_weighting, normalise_rewards, args):
         algo = PPOAlgo(
             envs,
             acmodel,
-            autoencoder_mse,
-            autoencoder_mse_opt,
-            autoencoder_ama,
-            autoencoder_ama_opt,
+            autoencoder,
+            autoencoder_opt,
             args.uncertainty,
             args.noisy_tv,
             args.curiosity,
@@ -208,7 +201,6 @@ def tuner(icm_lr, reward_weighting, normalise_rewards, args):
             data += num_frames_per_episode.values()
             header += [
                 "intrinsic_rewards",
-                "mse_rewards",
                 "uncertainties",
                 "novel_states_visited",
                 "entropy",
@@ -219,7 +211,6 @@ def tuner(icm_lr, reward_weighting, normalise_rewards, args):
             ]
             data += [
                 logs["intrinsic_rewards"].mean().item(),
-                logs["mse_rewards"].mean().item(),
                 logs["uncertainties"].mean().item(),
                 logs["novel_states_visited"].mean().item(),
                 logs["entropy"],
