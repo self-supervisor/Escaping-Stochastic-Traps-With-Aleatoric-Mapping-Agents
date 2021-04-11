@@ -47,7 +47,7 @@ x_test_data, y_test_data = mndata.load_testing()
 
 training_steps = 50000
 checkpoint_loss = 1000
-device = torch.device('cuda:1')
+device = torch.device("cuda:1")
 print("device:", device)
 
 
@@ -177,9 +177,12 @@ class NoisyMNISTExperimentRun:
 
     def save_evaluation_performance(self, repeat):
         np.save(
-            "loss_list_deterministic_repeat_" + str(repeat) + ".npy", self.loss_list_0
+            "mse_loss_list_deterministic_repeat_" + str(repeat) + ".npy",
+            self.loss_list_0,
         )
-        np.save("loss_list_stochastic_repeat_" + str(repeat) + ".npy", self.loss_list_1)
+        np.save(
+            "mse_loss_list_stochastic_repeat_" + str(repeat) + ".npy", self.loss_list_1
+        )
 
     def preprocess_batch(self, data, target):
         data /= 255
@@ -282,9 +285,7 @@ class NoisyMNISTExperimentRunAMA(NoisyMNISTExperimentRun):
     def compute_loss_and_reward(self, prediction, target):
         mu, log_sigma = prediction
         mse = F.mse_loss(mu, target, reduction="none")
-        loss = torch.mean(
-            torch.exp(-log_sigma) * mse + log_sigma
-        )
+        loss = torch.mean(torch.exp(-log_sigma) * mse + log_sigma)
         reward = torch.mean(mse - torch.exp(log_sigma))
         return loss, reward
 
@@ -297,3 +298,206 @@ class NoisyMNISTExperimentRunAMA(NoisyMNISTExperimentRun):
             "aleatoric_loss_list_stochastic_repeat_" + str(repeat) + ".npy",
             self.loss_list_1,
         )
+
+
+class NoisyMNISTExperimentRunLearningProgress(NoisyMNISTExperimentRun):
+    def __init__(
+        self,
+        repeats,
+        training_steps,
+        checkpoint_loss,
+        lr,
+        model,
+        mnist_env_train,
+        mnist_env_test_zeros,
+        mnist_env_test_ones,
+        device,
+    ):
+        NoisyMNISTExperimentRunLearningProgress.__init__(
+            self,
+            repeats,
+            training_steps,
+            checkpoint_loss,
+            lr,
+            model,
+            mnist_env_train,
+            mnist_env_test_zeros,
+            mnist_env_test_ones,
+            device,
+        )
+
+    def train_step(self, update):
+        update += 1
+        self.model.train()
+        self.data, self.target = self.get_batch(self.env_train)
+        self.output = self.model(self.data)
+        loss, reward = self.compute_loss_and_reward()
+        self.loss_buffer.append(reward)
+        if update % self.checkpoint_loss == 0:
+            self.loss_list.append(
+                torch.mean(torch.stack(self.loss_buffer)).detach().cpu().numpy()
+            )
+            self.loss_buffer = []
+
+    def compute_loss_and_reward(self):
+        self.opt.zero_grad()
+        mu, log_sigma = self.output
+        mse = F.mse_loss(mu, self.target, reduction="none")
+        loss = torch.mean(mse)
+        loss.backward()
+        self.opt.step()
+        mu_after_update, _ = self.model()
+        reward = F.mse_loss(mu_after_update, mu)
+        return loss, reward
+
+    def eval_step(self, ones_or_zeros, update):
+        update += 1
+        assert ones_or_zeros in ["ones", "zeros"]
+        if ones_or_zeros == "ones":
+            env = self.env_test_zeros
+        elif ones_or_zeros == "zeros":
+            env = self.env_test_ones
+        self.data, self.target = self.get_batch(env)
+        self.output = self.model(data)
+        loss, reward = self.compute_loss_and_reward()
+        if ones_or_zeros == "ones":
+            self.loss_buffer_1.append(reward)
+            if update % self.checkpoint_loss == 0:
+                self.loss_list_1.append(
+                    torch.mean(torch.stack(self.loss_buffer_1)).detach().cpu().numpy()
+                )
+                self.loss_buffer_1 = []
+        elif ones_or_zeros == "zeros":
+            self.loss_buffer_0.append(reward)
+            if update % self.checkpoint_loss == 0:
+                self.loss_list_0.append(
+                    torch.mean(torch.stack(self.loss_buffer_0)).detach().cpu().numpy()
+                )
+                self.loss_buffer_0 = []
+
+    def save_evaluation_performance(self, repeat):
+        np.save(
+            "learning_progress_loss_list_deterministic_repeat_" + str(repeat) + ".npy",
+            self.loss_list_0,
+        )
+        np.save(
+            "learning_progress_loss_list_stochastic_repeat_" + str(repeat) + ".npy",
+            self.loss_list_1,
+        )
+
+
+class NoisyMNISTExperimentRunLearningProgress(NoisyMNISTExperimentRun):
+    def __init__(
+        self,
+        repeats,
+        training_steps,
+        checkpoint_loss,
+        lr,
+        model,
+        mnist_env_train,
+        mnist_env_test_zeros,
+        mnist_env_test_ones,
+        device,
+    ):
+        NoisyMNISTExperimentRun.__init__(
+            self,
+            repeats,
+            training_steps,
+            checkpoint_loss,
+            lr,
+            model,
+            mnist_env_train,
+            mnist_env_test_zeros,
+            mnist_env_test_ones,
+            device,
+        )
+
+    def train_step(self, update):
+        update += 1
+        self.model.train()
+        self.data, self.target = self.get_batch(self.env_train)
+        self.output = self.model(self.data)
+        loss, reward = self.compute_loss_and_reward()
+        self.loss_buffer.append(reward)
+        if update % self.checkpoint_loss == 0:
+            self.loss_list.append(
+                torch.mean(torch.stack(self.loss_buffer)).detach().cpu().numpy()
+            )
+            self.loss_buffer = []
+
+    def compute_loss_and_reward(self):
+        self.opt.zero_grad()
+        mu, log_sigma = self.output
+        mse = F.mse_loss(mu, self.target, reduction="none")
+        loss = torch.mean(mse)
+        loss.backward()
+        self.opt.step()
+        mu_after_update, _ = self.model(self.data)
+        reward = F.mse_loss(mu_after_update, mu)
+        return loss, reward
+
+    def eval_step(self, ones_or_zeros, update):
+        update += 1
+        assert ones_or_zeros in ["ones", "zeros"]
+        if ones_or_zeros == "ones":
+            env = self.env_test_zeros
+        elif ones_or_zeros == "zeros":
+            env = self.env_test_ones
+        self.data, self.target = self.get_batch(env)
+        self.output = self.model(self.data)
+        loss, reward = self.compute_loss_and_reward()
+        if ones_or_zeros == "ones":
+            self.loss_buffer_1.append(reward)
+            if update % self.checkpoint_loss == 0:
+                self.loss_list_1.append(
+                    torch.mean(torch.stack(self.loss_buffer_1)).detach().cpu().numpy()
+                )
+                self.loss_buffer_1 = []
+        elif ones_or_zeros == "zeros":
+            self.loss_buffer_0.append(reward)
+            if update % self.checkpoint_loss == 0:
+                self.loss_list_0.append(
+                    torch.mean(torch.stack(self.loss_buffer_0)).detach().cpu().numpy()
+                )
+                self.loss_buffer_0 = []
+
+    def save_evaluation_performance(self, repeat):
+        np.save(
+            "learning_progress_loss_list_deterministic_repeat_" + str(repeat) + ".npy",
+            self.loss_list_0,
+        )
+        np.save(
+            "learning_progress_loss_list_stochastic_repeat_" + str(repeat) + ".npy",
+            self.loss_list_1,
+        )
+
+
+def main():
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    aleatoric_model = AleatoricNet()
+    mndata = MNIST("data")
+    x_train_data, y_train_data = mndata.load_training()
+    x_test_data, y_test_data = mndata.load_testing()
+
+    mnist_env_train = NoisyMnistEnv("train", 0, 2)
+    mnist_env_test_zeros = NoisyMnistEnv("test", 0, 1)
+    mnist_env_test_ones = NoisyMnistEnv("test", 1, 2)
+
+    repeats = 1
+    training_steps = 500
+    checkpoint_loss = 10
+    aleatoric_lr = 0.001
+
+    experiment_progress = NoisyMNISTExperimentRunLearningProgress(
+        repeats=repeats,
+        training_steps=training_steps,
+        checkpoint_loss=checkpoint_loss,
+        lr=aleatoric_lr,
+        model=aleatoric_model,
+        mnist_env_train=mnist_env_train,
+        mnist_env_test_zeros=mnist_env_test_zeros,
+        mnist_env_test_ones=mnist_env_test_ones,
+        device=device,
+    )
+    experiment_progress.run_experiment()
