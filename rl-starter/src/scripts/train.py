@@ -1,13 +1,39 @@
+import utils
+import time
+
+
+def log_to_wandb(logs, start_time, update_start_time, update_end_time):
+    fps = logs["num_frames"] / (update_end_time - update_start_time)
+    wandb.log({"fps": fps})
+    duration = int(time.time() - start_time)
+    wandb.log({"duration": duration})
+    return_per_episode = utils.synthesize(logs["return_per_episode"])
+    wandb.log({"return_per_episode": return_per_episode})
+    rreturn_per_episode = utils.synthesize(logs["reshaped_return_per_episode"])
+    wandb.log({"rreturn_per_episode": rreturn_per_episode})
+    num_frames_per_episode = utils.synthesize(logs["num_frames_per_episode"])
+    wandb.log({"number_frames_per_episode": num_frames_per_episode})
+    for a_key in rreturn_per_episode.keys():
+        wandb.log({"rreturn_" + a_key: rreturn_per_episode[a_key]})
+        wandb.log({"num_frames_" + a_key: num_frames_per_episode[a_key]})
+    wandb.log({"intrinsic_rewards": logs["intrinsic_rewards"].mean().item()})
+    wandb.log({"uncertainties": logs["uncertainties"].mean().item()})
+    wandb.log({"novel_states_visited": logs["novel_states_visited"].max().item()})
+    wandb.log({"entropy": logs["entropy"]})
+    wandb.log({"value": logs["value"]})
+    wandb.log({"policy_loss": logs["policy_loss"]})
+    wandb.log({"value_loss": logs["value_loss"]})
+    wandb.log({"grad_norm": logs["grad_norm"]})
+
+
 def tuner(icm_lr, reward_weighting, normalise_rewards, args):
     import argparse
-    import time
     import datetime
     import torch
     import torch_ac
     import tensorboardX
     import sys
     import numpy as np
-    import utils
     from model import ACModel
     from .a2c import A2CAlgo
     from .ppo import PPOAlgo
@@ -56,8 +82,7 @@ def tuner(icm_lr, reward_weighting, normalise_rewards, args):
 
     # Set device
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    device = "cpu"
+    device = "cpu"  # torch.device("cuda" if torch.cuda.is_available() else "cpu")
     txt_logger.info(f"Device: {device}\n")
     # Load environments
 
@@ -185,6 +210,8 @@ def tuner(icm_lr, reward_weighting, normalise_rewards, args):
         num_frames += logs["num_frames"]
         update += 1
 
+        log_to_wandb(logs, start_time, update_start_time, update_end_time)
+
         # Print logs
 
         if update % args.log_interval == 0:
@@ -224,19 +251,7 @@ def tuner(icm_lr, reward_weighting, normalise_rewards, args):
                     *data
                 )
             )
-            header += ["return_" + key for key in return_per_episode.keys()]
-            data += return_per_episode.values()
-
-            if status["num_frames"] == 0:
-                csv_logger.writerow(header)
-            csv_logger.writerow(data)
-            csv_file.flush()
-
-            for field, value in zip(header, data):
-                tb_writer.add_scalar(field, value, num_frames)
-
         # Save status
-
         if args.save_interval > 0 and update % args.save_interval == 0:
             status = {
                 "num_frames": num_frames,
@@ -247,26 +262,11 @@ def tuner(icm_lr, reward_weighting, normalise_rewards, args):
             if hasattr(preprocess_obss, "vocab"):
                 status["vocab"] = preprocess_obss.vocab.vocab
             utils.save_status(status, model_dir)
-            txt_logger.info("Status saved")
-
-    algo.action_stats_logger.save(f"{args.model}_action_stats")
-    np.save(f"{args.model}_visitation_counts.npy", algo.visitation_counts)
-    if args.visualizing == "True":
-        print("got to vis part")
-        algo.save_autoencoder(path=model_dir)
-        num_frames = 0
-        while num_frames < frames_to_visualise:
-            if num_frames == 0:
-                reset = True
-            else:
-                reset = False
-            num_frames += 1
-            algo.visualise_performance(reset=reset)
-
-    return np.count_nonzero(algo.visitation_counts)
+    return
 
 
 if __name__ == "__main__":
+    import wandb
     import argparse
 
     parser = argparse.ArgumentParser()
@@ -402,10 +402,11 @@ if __name__ == "__main__":
     parser.add_argument("--frames_before_reset")
     args = parser.parse_args()
 
+    wandb.init(project="minigrid")
+    wandb.config.update(args)
     novel_states = tuner(
         float(args.icm_lr), float(args.reward_weighting), args.normalise_rewards, args
     )
-
     import csv
 
     with open(

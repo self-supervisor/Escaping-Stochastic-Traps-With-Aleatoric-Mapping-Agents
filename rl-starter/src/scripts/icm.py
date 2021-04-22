@@ -61,8 +61,11 @@ class ICM:
             ).to(self.device)
             mu, sigma = self.autoencoder(old_obs, action_channel)
             mse = F.mse_loss(mu, new_obs, reduction="none")
-            loss = torch.mean(((torch.exp(-sigma) * mse) + sigma), dim=(1, 2, 3))
-            reward = torch.mean(mse - 2 * torch.exp(sigma), dim=(1, 2, 3))
+            loss = torch.mean(
+                ((torch.exp(-sigma) * mse) + self.uncertainty_budget * sigma),
+                dim=(1, 2, 3),
+            )
+            reward = torch.mean(mse - torch.exp(sigma), dim=(1, 2, 3))
         else:
             action_channel = torch.stack(
                 [(torch.ones((7, 7, 1)) * an_action) / 6 for an_action in action]
