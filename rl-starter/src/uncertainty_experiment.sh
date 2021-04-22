@@ -9,7 +9,7 @@ environment=MiniGrid-MultiRoom-N4-S5-v0 #MiniGrid-KeyCorridorS6R3-v0 #MiniGrid-M
 
 randomise_env=False
 frames=1000000
-uncertainty_budget=0.0005
+uncertainty_budget=0.1
 #random_seeds=(85 86 87 88 89)
 random_seeds=(1 2 3)
 
@@ -39,7 +39,7 @@ for frames_before_reset in ${frames_before_resets[@]}; do
     #wait
    
     random_action=False
-    reward_weighting=10
+    reward_weighting=1
     noisy_tv=(True False)
     curiosity=(True)
     uncertainty=(True)
