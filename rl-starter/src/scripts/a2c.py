@@ -6,12 +6,12 @@ import torch.nn.utils as nn
 from .dictlist import DictList
 from torch_ac.algos.base import BaseAlgo
 from copy import deepcopy
+from .welford import OnlineVariance
 from .action_stats_logger import ActionStatsLogger
 from .icm import ICM
 import math
 from .conversion_utils import scale_for_autoencoder
 from utils.noisy_tv_wrapper import NoisyTVWrapper
-from welford import Welford
 
 
 class A2CAlgo(BaseAlgo):
@@ -75,13 +75,13 @@ class A2CAlgo(BaseAlgo):
             device,
             self.preprocess_obss,
             reward_weighting,
-            uncertainty_budget=uncertainty_budget,
         )
         self.action = torch.Tensor([4] * 16)
         self.noisy_action_count = 0
         self.noisy_tv = noisy_tv
         self.curiosity = curiosity
         self.randomise_env = randomise_env
+        self.uncertainty_budget = float(uncertainty_budget)
         self.environment_seed = int(environment_seed)
         self.visitation_counts = np.zeros(
             (self.env.envs[0].width, self.env.envs[0].height)
@@ -91,6 +91,8 @@ class A2CAlgo(BaseAlgo):
         self.uncertainties = torch.zeros(*shape, device=self.device)
         self.novel_states_visited = torch.zeros(*shape, device=self.device)
         self.reward_weighting = reward_weighting
+        self.moving_average_calculator = OnlineVariance(device=self.device)
+        self.moving_average_reward = OnlineVariance(device=self.device)
         self.normalise_rewards = normalise_rewards
         self.algo_count = 0
         self.frames_before_reset = int(frames_before_reset)
@@ -106,7 +108,6 @@ class A2CAlgo(BaseAlgo):
         self.env = NoisyTVWrapper(self.env, self.noisy_tv)
         self.counter = 0
         self.random_action = random_action
-        self.online_variance = Welford()
 
     def update_visitation_counts(self, envs):
         """
@@ -115,7 +116,7 @@ class A2CAlgo(BaseAlgo):
         for i, env in enumerate(envs):
             if self.visitation_counts[env.agent_pos[0]][env.agent_pos[1]] == 0:
                 pass
-                # self.agents_to_save.append(i)
+                #self.agents_to_save.append(i)
             self.visitation_counts[env.agent_pos[0]][env.agent_pos[1]] += 1
 
     def collect_experiences(self):
@@ -167,17 +168,18 @@ class A2CAlgo(BaseAlgo):
             self.update_visitation_counts(self.env.envs)
             self.obss[i] = self.obs
             self.obs = obs
-            # self.current_frames.append(self.obs)
-            # self.previous_frames.append(self.obss[i])
+            #self.current_frames.append(self.obs)
+            #self.previous_frames.append(self.obss[i])
             if self.curiosity == "True":
 
                 mse, intrinsic_reward, uncertainty = self.icm.compute_intrinsic_rewards(
                     self.obss[i], self.obs, action
                 )
                 if self.normalise_rewards == "True":
-                    intrinsic_reward_numpy = intrinsic_reward.detach().cpu().numpy()
-                    self.online_variance.add_all(intrinsic_reward_numpy)
-                    intrinsic_reward /= np.sqrt(self.online_variance.var_s)
+                    normlalised_reward = self.moving_average_reward.include_tensor(
+                        intrinsic_reward
+                    )
+                    intrinsic_reward = normlalised_reward
                 reward = intrinsic_reward + torch.tensor(reward, dtype=torch.float).to(
                     self.device
                 )
