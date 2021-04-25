@@ -1,23 +1,8 @@
 #!/usr/bin/env python
 # coding: utf-8
-
-# In[1]:
-
-
-# !pip install pytest==5.4.0
-# !pip install pytest
-
-
-# ## Defining Noisy Environment ##
-
-# In[2]:
-
-
 from __future__ import print_function
-
 import argparse
 import glob
-
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
@@ -31,15 +16,12 @@ from sklearn.model_selection import train_test_split
 from torch.optim.lr_scheduler import StepLR
 from torchvision import datasets, transforms
 from tqdm import tqdm
+import wandb
 
 # get_ipython().run_line_magic("matplotlib", "inline")
 plt.rc("font", family="serif")
 plt.rc("xtick", labelsize="large")
 plt.rc("ytick", labelsize="large")
-
-
-# In[3]:
-
 
 mndata = MNIST("data")
 x_train_data, y_train_data = mndata.load_training()
@@ -112,7 +94,6 @@ class Net(nn.Module):
         return x
 
 
-# from here https://github.com/L1aoXingyu/pytorch-beginner/tree/master/08-AutoEncoder
 class AleatoricNet(nn.Module):
     def __init__(self):
         super(AleatoricNet, self).__init__()
@@ -132,11 +113,6 @@ class AleatoricNet(nn.Module):
         log_sigma = F.relu(self.linear_3_sigma(x))
         log_sigma = self.linear_4_sigma(log_sigma)
         return mu, log_sigma
-
-
-# # Defining MNIST Experiment
-
-# In[ ]:
 
 
 class NoisyMNISTExperimentRun:
@@ -231,6 +207,14 @@ class NoisyMNISTExperimentRun:
         if ones_or_zeros == "ones":
             self.loss_buffer_1.append(reward)
             if update % self.checkpoint_loss == 0:
+                wandb.log(
+                    {
+                        "ones loss": torch.mean(torch.stack(self.loss_buffer_1))
+                        .detach()
+                        .cpu()
+                        .numpy()
+                    }
+                )
                 self.loss_list_1.append(
                     torch.mean(torch.stack(self.loss_buffer_1)).detach().cpu().numpy()
                 )
@@ -238,6 +222,15 @@ class NoisyMNISTExperimentRun:
         elif ones_or_zeros == "zeros":
             self.loss_buffer_0.append(reward)
             if update % self.checkpoint_loss == 0:
+                # wandb
+                wandb.log(
+                    {
+                        "zeros loss": torch.mean(torch.stack(self.loss_buffer_0))
+                        .detach()
+                        .cpu()
+                        .numpy()
+                    }
+                )
                 self.loss_list_0.append(
                     torch.mean(torch.stack(self.loss_buffer_0)).detach().cpu().numpy()
                 )
@@ -363,6 +356,8 @@ class NoisyMNISTExperimentRunLearningProgress(NoisyMNISTExperimentRun):
         if ones_or_zeros == "ones":
             self.loss_buffer_1.append(reward)
             if update % self.checkpoint_loss == 0:
+                # wandb
+
                 self.loss_list_1.append(
                     torch.mean(torch.stack(self.loss_buffer_1)).detach().cpu().numpy()
                 )
@@ -370,6 +365,7 @@ class NoisyMNISTExperimentRunLearningProgress(NoisyMNISTExperimentRun):
         elif ones_or_zeros == "zeros":
             self.loss_buffer_0.append(reward)
             if update % self.checkpoint_loss == 0:
+                # wandb
                 self.loss_list_0.append(
                     torch.mean(torch.stack(self.loss_buffer_0)).detach().cpu().numpy()
                 )
@@ -449,6 +445,7 @@ class NoisyMNISTExperimentRunLearningProgress(NoisyMNISTExperimentRun):
         if ones_or_zeros == "ones":
             self.loss_buffer_1.append(reward)
             if update % self.checkpoint_loss == 0:
+                # wandb
                 self.loss_list_1.append(
                     torch.mean(torch.stack(self.loss_buffer_1)).detach().cpu().numpy()
                 )
@@ -459,6 +456,7 @@ class NoisyMNISTExperimentRunLearningProgress(NoisyMNISTExperimentRun):
                 self.loss_list_0.append(
                     torch.mean(torch.stack(self.loss_buffer_0)).detach().cpu().numpy()
                 )
+                # wandb
                 self.loss_buffer_0 = []
 
     def save_evaluation_performance(self, repeat):
@@ -489,15 +487,9 @@ def main():
     checkpoint_loss = 10
     aleatoric_lr = 0.001
 
-    experiment_progress = NoisyMNISTExperimentRunLearningProgress(
-        repeats=repeats,
-        training_steps=training_steps,
-        checkpoint_loss=checkpoint_loss,
-        lr=aleatoric_lr,
-        model=aleatoric_model,
-        mnist_env_train=mnist_env_train,
-        mnist_env_test_zeros=mnist_env_test_zeros,
-        mnist_env_test_ones=mnist_env_test_ones,
-        device=device,
-    )
-    experiment_progress.run_experiment()
+    config = {
+        "repeats": repeats,
+        "training_steps": training_steps,
+        "checkpoint_loss": checkpoint_loss,
+        "aleatoric_lr": aleatoric_lr,
+    }

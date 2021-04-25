@@ -40,7 +40,7 @@ for reward_weighting in ${reward_weightings[@]}; do
             done
             for frames_before_reset in ${frames_before_resets[@]}; do
                 random_action=False
-                noisy_tv=(False)
+                noisy_tv=(True False)
                 curiosity=(False)
                 uncertainty=(False)
                 save_interval=2000
