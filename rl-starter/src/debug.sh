@@ -11,7 +11,7 @@ randomise_env=False
 frames=5000000
 uncertainty_budget=0.0005
 #random_seeds=(85 86 87 88 89)
-random_seeds=(6 7 8) #9 10)
+random_seeds=(1 2 3) #9 10)
 reward_weightings=(1)
 normalise_rewards=(True)
 icm_lrs=(0.001)
@@ -21,7 +21,7 @@ for reward_weighting in ${reward_weightings[@]}; do
         for icm_lr in ${icm_lrs[@]}; do
             for frames_before_reset in ${frames_before_resets[@]}; do
                 random_action=False
-                noisy_tv=(False)
+                noisy_tv=(True False)
                 curiosity=(True)
                 uncertainty=(True)
                 save_interval=2000
