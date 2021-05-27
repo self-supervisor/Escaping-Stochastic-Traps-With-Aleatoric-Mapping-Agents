@@ -1,6 +1,7 @@
 import gym
 import numpy as np
 
+
 class NoisyTVWrapper(gym.Wrapper):
     def __init__(self, env, noisy_tv):
         super().__init__(env)
@@ -9,7 +10,7 @@ class NoisyTVWrapper(gym.Wrapper):
 
     def step(self, action):
         next_state, reward, done, info = self.env.step(action)
-        if self.noisy_tv == "True": 
+        if self.noisy_tv == "True":
             next_state = self.add_noisy_tv(next_state, action)
         return next_state, reward, done, info
 
