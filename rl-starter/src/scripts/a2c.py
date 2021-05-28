@@ -116,7 +116,7 @@ class A2CAlgo(BaseAlgo):
         for i, env in enumerate(envs):
             if self.visitation_counts[env.agent_pos[0]][env.agent_pos[1]] == 0:
                 pass
-                #self.agents_to_save.append(i)
+                # self.agents_to_save.append(i)
             self.visitation_counts[env.agent_pos[0]][env.agent_pos[1]] += 1
 
     def collect_experiences(self):
@@ -168,26 +168,26 @@ class A2CAlgo(BaseAlgo):
             self.update_visitation_counts(self.env.envs)
             self.obss[i] = self.obs
             self.obs = obs
-            #self.current_frames.append(self.obs)
-            #self.previous_frames.append(self.obss[i])
+            # self.current_frames.append(self.obs)
+            # self.previous_frames.append(self.obss[i])
             if self.curiosity == "True":
 
                 mse, intrinsic_reward, uncertainty = self.icm.compute_intrinsic_rewards(
                     self.obss[i], self.obs, action
                 )
-                if self.normalise_rewards == "True":
-                    normlalised_reward = self.moving_average_reward.include_tensor(
-                        intrinsic_reward
-                    )
-                    intrinsic_reward = normlalised_reward
+                # if self.normalise_rewards == "True":
+                #    normlalised_reward = self.moving_average_reward.include_tensor(
+                #        intrinsic_reward
+                #    )
+                #    intrinsic_reward = normlalised_reward
                 reward = intrinsic_reward + torch.tensor(reward, dtype=torch.float).to(
                     self.device
                 )
                 loss = torch.sum(mse)
-                self.intrinsic_reward_buffer.append(intrinsic_reward)
-                self.action_stats_logger.add_to_log_dicts(
-                    action.detach().numpy(), intrinsic_reward.detach().numpy()
-                )
+                # self.intrinsic_reward_buffer.append(intrinsic_reward)
+                # self.action_stats_logger.add_to_log_dicts(
+                #    action.detach().numpy(), intrinsic_reward.detach().numpy()
+                # )
                 self.icm.update_curiosity_parameters(loss)
 
             if self.acmodel.recurrent:

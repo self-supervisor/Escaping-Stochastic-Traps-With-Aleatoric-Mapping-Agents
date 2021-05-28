@@ -62,8 +62,8 @@ class ICM:
         )
         action_vector /= 6
         forward_prediction, uncertainty = self.autoencoder(old_obs, action_vector)
-        self.predicted_frames.append(forward_prediction)
-        self.predicted_uncertainty_frames.append(uncertainty)
+        # self.predicted_frames.append(forward_prediction)
+        # self.predicted_uncertainty_frames.append(uncertainty)
         if self.uncertainty == "True":
             mse = F.mse_loss(forward_prediction, new_obs, reduction="none")
             loss = torch.sum(

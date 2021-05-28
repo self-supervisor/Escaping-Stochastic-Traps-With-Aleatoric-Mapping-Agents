@@ -3,7 +3,7 @@ import glob
 import pandas as pd
 import numpy as np
 
-parser = argparse.ArgumentParser(description='Process some integers.')
+parser = argparse.ArgumentParser(description="Process some integers.")
 parser.add_argument("--seeds", help="list of seeds to aggregate over")
 args = parser.parse_args()
 
