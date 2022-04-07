@@ -15,8 +15,9 @@ class ActionStatsLogger:
         assert len(action_taken) == len(intrinsic_reward)
         for i, _ in enumerate(action_taken):
             self.number_of_steps_logged += 1
-            self.add_to_frequency_dict(action_taken[i])
-            self.add_to_intrinsic_reward_dict(intrinsic_reward[i], action_taken[i])
+            continue
+            # self.add_to_frequency_dict(action_taken[i])
+            # self.add_to_intrinsic_reward_dict(intrinsic_reward[i], action_taken[i])
 
     def add_to_frequency_dict(self, action_taken):
         if len(self.action_frequencies[action_taken]) == 0:

@@ -11,7 +11,7 @@ randomise_env=False
 frames=1000000
 uncertainty_budget=0.0005
 #random_seeds=(85 86 87 88 89)
-random_seeds=(1 2 3)
+random_seeds=(1)
 
 for frames_before_reset in ${frames_before_resets[@]}; do
 

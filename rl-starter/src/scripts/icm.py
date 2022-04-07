@@ -30,7 +30,6 @@ class ICM:
     def update_curiosity_parameters(self, loss):
         self.autoencoder_opt.zero_grad()
         loss.backward()
-        # nn.clip_grad_norm_(self.autoencoder.parameters(), self.grad_clip)
         self.autoencoder_opt.step()
 
     def compute_intrinsic_rewards(self, old_obs, new_obs, action):
@@ -62,8 +61,8 @@ class ICM:
         )
         action_vector /= 6
         forward_prediction, uncertainty = self.autoencoder(old_obs, action_vector)
-        self.predicted_frames.append(forward_prediction)
-        self.predicted_uncertainty_frames.append(uncertainty)
+        # self.predicted_frames.append(forward_prediction)
+        # self.predicted_uncertainty_frames.append(uncertainty)
         if self.uncertainty == "True":
             mse = F.mse_loss(forward_prediction, new_obs, reduction="none")
             loss = torch.sum(
