@@ -1,3 +1,5 @@
+# This paper got a rebrand (new title and some other changes for a resubmission), please use the new repo [here](https://github.com/self-supervisor/How_to_stay_curious_while_avoiding_noisy_TVs)
+
 Official anonymised code submission for: 
 
 *Escaping Stochastic Traps with Aleatoric Mapping Agents*
